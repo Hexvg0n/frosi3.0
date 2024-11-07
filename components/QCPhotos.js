@@ -11,3 +11,4 @@ function QCPhotos({ photos }) {
 }
 
 export default QCPhotos;
+

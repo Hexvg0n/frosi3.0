@@ -1,10 +1,14 @@
+// /pages/w2c.js (lub odpowiednia ścieżka)
+
 import FooterSection from "@/components/FooterSection";
 import FooterTwoSection from "@/components/FooterTwoSection";
 import NavbarSection from "@/components/NavbarSection";
-import {Image} from "@nextui-org/react";
+import { Image } from "@nextui-org/react";
 import axios from 'axios';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import {Select, SelectSection, SelectItem} from "@nextui-org/select";
+import { Select, SelectSection, SelectItem } from "@nextui-org/select";
+import { useRouter } from 'next/router'; // Importowanie useRouter
+import debounce from 'lodash.debounce'; // Importowanie debounce z lodash
 
 export default function W2C() {
   const [items, setItems] = useState([]);
@@ -14,44 +18,49 @@ export default function W2C() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortOrder, setSortOrder] = useState('');
   const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Dodany stan dla loadera
 
   const exchangeRate = 3.90;
   const queryRef = useRef('');
 
   const categories = {
-    hoodies: "Bluzy",
-    jackets: "Kurtki",
-    jewelry: "Biżuteria",
-    misc: "Inne",
-    pants: "Spodnie",
-    sales: "Wyprzedaże",
-    shoes: "Buty",
-    tshirts: "Koszulki",
+    'Hoodies/Sweaters': "Bluzy",
+    Jackets: "Kurtki",
+    Accessories: "Biżuteria",
+    'Other Stuff': "Inne",
+    'Pants/Shorts': "Spodnie",
+    Headware: "Czapki",
+    Shoes: "Buty",
+    'T-Shirts': "Koszulki",
   };
 
+  const router = useRouter(); // Inicjalizacja routera
+
+  // Funkcja fetchItems bez sortOrder w parametrach
   const fetchItems = useCallback(async () => {
+    setIsLoading(true); // Start loadera
     try {
       const query = queryRef.current.trim();
       const response = await axios.get('/api/products', {
         params: {
-          category: selectedCategory,
+          Category: selectedCategory,
           bestbatch: bestBatchOnly,
-          sortOrder: sortOrder || undefined,
+          // sortOrder: sortOrder || undefined, // Usuń sortOrder z API
           name: query || undefined, 
         },
       });
-  
+
       const resultsWithBatch = response.data.results.map(item => {
         const priceInUSD = parseFloat(item.price.replace('$', ''));
-        const priceInPLN = (priceInUSD * exchangeRate).toFixed(2);
-  
+        const priceInPLN = parseFloat((priceInUSD * exchangeRate).toFixed(2)); // Przechowujemy pricePLN jako liczbę
+
         return {
           ...item,
           batch: item.batch || "Random",
-          pricePLN: priceInPLN,
+          pricePLN: priceInPLN, // Liczba
         };
       });
-  
+
       if (resultsWithBatch.length === 0) {
         setErrorMessage('Brak wyników dla podanego produktu.');
         setHasMore(false);
@@ -60,17 +69,19 @@ export default function W2C() {
         setErrorMessage('');
         setHasMore(response.data.results.length > 0);
       }
-  
-      filterAndSortItems(resultsWithBatch);
+
+      // Nie wywołuj filterAndSortItems tutaj, użyj useEffect
     } catch (error) {
       console.error('Error:', error.response ? error.response.data : error.message);
       setErrorMessage('Wystąpił błąd podczas pobierania danych.');
+    } finally {
+      setIsLoading(false); // Stop loadera
     }
-  }, [selectedCategory, bestBatchOnly, sortOrder]);
-  
+  }, [selectedCategory, bestBatchOnly]); // Usuń sortOrder z zależności
 
-  const filterAndSortItems = (items) => {
-    let result = items;
+  // Funkcja filtrowania i sortowania
+  const filterAndSortItems = useCallback(() => {
+    let result = [...items]; // Tworzymy kopię tablicy, aby uniknąć mutacji stanu
 
     if (bestBatchOnly) {
       result = result.filter(item => item.batch !== "Random");
@@ -78,30 +89,43 @@ export default function W2C() {
 
     if (sortOrder) {
       result.sort((a, b) => {
-        const priceA = parseFloat(a.price.replace('$', ''));
-        const priceB = parseFloat(b.price.replace('$', ''));
+        const priceA = a.pricePLN;
+        const priceB = b.pricePLN;
         return sortOrder === 'desc' ? priceB - priceA : priceA - priceB;
       });
     }
 
     setFilteredItems(result);
-  };
+  }, [items, bestBatchOnly, sortOrder]);
+
+  // Debounced fetchItems
+  const debouncedFetch = useCallback(debounce(fetchItems, 300), [fetchItems]);
 
   const handleInputChange = (e) => {
     queryRef.current = e.target.value;
     setErrorMessage(''); // Clear any previous error messages
-    fetchItems();
+    debouncedFetch();
   };
+
+  // useEffect do filtrowania i sortowania po zmianie sortOrder, bestBatchOnly lub items
+  useEffect(() => {
+    filterAndSortItems();
+  }, [filterAndSortItems]);
 
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
 
+  // Funkcja obsługująca kliknięcie przycisku "QC"
+  const handleQCClick = (link) => {
+    router.push(`/qc?url=${encodeURIComponent(link)}`);
+  };
+
   return (
     <>
       <NavbarSection />
       <div className="flex flex-col md:flex-row items-start min-h-full pt-20 pb-20 mx-4">
-        <div className="w-full md:w-1/3 md:sticky md:top-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 rounded-xl shadow-lg mr-4 overflow-y-auto max-h-screen">
+        {/* <div className="w-full md:w-1/3 md:sticky md:top-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 rounded-xl shadow-lg mr-4 overflow-y-auto max-h-screen">
           <div className="flex flex-col space-y-6">
             <div className="flex items-center">
               <input
@@ -141,7 +165,7 @@ export default function W2C() {
               </select>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="w-full md:w-2/3 flex flex-col items-center justify-start space-y-4 p-4">
           <div className="flex items-center w-full max-w-6xl space-x-4 mb-4">
@@ -156,6 +180,12 @@ export default function W2C() {
               </div>
             </div>
           </div>
+
+          {isLoading && (
+            <div className="w-full max-w-6xl mt-4 p-4 bg-gray-800 text-gray-300 text-center font-semibold rounded-lg shadow-lg">
+              Ładowanie przedmiotów...
+            </div>
+          )}
 
           {errorMessage && (
             <div className="w-full max-w-6xl mt-4 p-4 bg-red-700 border-2 border-red-900 text-white font-semibold rounded-lg shadow-lg">
@@ -173,23 +203,22 @@ export default function W2C() {
                   <img
                     src={item.image_url}
                     alt={item.name}
-                    className="w-full h-32 object-cover mb-2 rounded-lg cursor-pointer"
+                    className="w-full h-46 object-cover mb-2 rounded-lg cursor-pointer"
                     onClick={() => window.open(item.link, '_blank')}
                   />
                   <h3 className="text-lg font-bold text-center truncate">{item.name}</h3>
-                  <p className="text-sm text-gray-400 text-center truncate">{item.price} ({item.pricePLN} PLN)</p>
-                  <p className="text-sm text-gray-500 text-center truncate">Batch: {item.batch}</p>
+                  <p className="text-sm text-gray-400 text-center truncate">{item.price} ({item.pricePLN.toFixed(2)} PLN)</p>
                 </div>
                 {item.link && (
                   <div className="w-full flex space-x-2 mt-2">
                     <button
                       onClick={() => window.open(item.link, '_blank')}
-                      className="w-3/4 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all font-bold"
+                      className="w-3/4 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all "
                     >
-                      Kup na HagoBuy
+                      Kup na AllChinaBuy
                     </button>
                     <button
-                      onClick={() => window.open(`/qc?url=${encodeURIComponent(item.link)}`, '_blank')}
+                      onClick={() => handleQCClick(item.link)} // Użycie nowej funkcji do przekierowania
                       className="w-1/4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-400 transition-all font-bold"
                     >
                       QC

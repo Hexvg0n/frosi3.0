@@ -36,8 +36,17 @@ const middlemen = {
   },
   basetao: {
     template: "https://www.basetao.com/best-taobao-agent-service/products/agent/{{platformDomain}}/{{itemID}}.html",
-    platformMapping: { taobao: "taobao", "1688": "1688", weidian: "weidian" },
-    itemIDPattern: [/agent\/(?:taobao|1688|weidian)\/(\d+)\.html/, /itemID=(\d+)/],
+    platformMapping: { 
+      taobao: "taobao", 
+      tmall: "tmall", 
+      "1688": "1688", 
+      weidian: "weidian" 
+    },
+    itemIDPattern: [
+      /agent\/(?:taobao|tmall|1688|weidian)\/(\d+)\.html/,  
+      /itemID=(\d+)/,                                      
+      /id=(\d+)/                                           
+    ],
     requiresDecoding: false
   },
   lovegobuy: {
@@ -65,6 +74,8 @@ const middlemen = {
     requiresDecoding: false
   }
 };
+
+
 
 // Funkcje pomocnicze
 

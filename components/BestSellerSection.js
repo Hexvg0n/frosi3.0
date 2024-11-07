@@ -16,27 +16,30 @@ export default function BestSellersSection() {
         <div className="p-8 mt-[3vh] min-h-[80vh] border-t-2 border-gray-500">
             <h2 className="text-4xl font-bold text-center mb-[12vh] text-gray-300">Best Sellery</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-                {bestsellers.map((item) => (
-                    <div key={item.id} className="bg-transparent rounded-lg shadow-lg p-4 border border-gray-300">
-                        <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full object-cover rounded-lg mb-4"
-                        />
-                        <h3 className="text-xl font-semibold text-gray-300 mb-2">{item.title}</h3>
-                        <div className="flex flex-col space-y-2">
-                            <button className="bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-all font-bold">
-                                <a href="/qc">QC</a>
-                            </button>
-                            <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all font-bold">
-                                <a href={item.linkTo}>
-                                Kup na AllChinaBuy
-                                </a>
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+  {bestsellers.map((item) => (
+    <div
+      key={item.id}
+      className="flex flex-col bg-transparent rounded-lg shadow-lg p-4 border border-gray-300 h-full"
+    >
+      <img
+        src={item.image}
+        alt={item.title}
+        className="w-full object-cover rounded-lg mb-4 flex-shrink-0"
+      />
+      <div className="flex flex-col flex-grow">
+        <h3 className="text-xl font-semibold text-gray-300 mb-2">{item.title}</h3>
+        <div className="mt-auto flex flex-col space-y-2">
+          <button className="bg-gray-700 text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-600 transition-all font-bold">
+            <a href="/qc">QC</a>
+          </button>
+          <button className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all font-bold">
+            <a href={item.linkTo}>Kup na AllChinaBuy</a>
+          </button>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
         </div>
     );
 }
