@@ -1,5 +1,5 @@
 
-import { useRouter } from 'next/router'; // Importowanie useRouter
+import { useRouter } from 'next/router';
 
 
 export default function BestSellersSection() {
