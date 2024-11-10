@@ -118,9 +118,7 @@ export default function AboutSection() {
         >
           <h1 className="text-4xl font-bold mb-6">Frosi aka Rudy</h1>
           <p className="text-lg">
-            Jestem pionierem wśród polskich twórców treści agencyjnych, będąc jednym z pierwszych, którzy odkryli i zaprezentowali ofertę HagoBuy zamiast bardziej konwencjonalnego Pandabuy. 
-            Mój kreatywny duch i innowacyjne podejście sprawiły, że zyskałem wielu zwolenników, z milionami wyświetleń urzeczonych moim odrębnym stylem i ekskluzywnością replik, które odkrywam. 
-            W ciągu ostatniego roku intensywnie badałem świat replik, eksperymentując z różnymi agentami i sprzedawcami, gromadząc dużą kolekcję obejmującą wiele kategorii.
+          Jestem jednym z pierwszych polskich twórców treści o tematyce chińskich agentów oraz pierwszym polskim promotorem  HagoBuy (dzisiaj KakoBuy). Śledzę świat mody próbując odnaleźć najlepsze ubrania pasujące do każdego obecnie noszonego stylu. W ciągu ostatniego roku intensywnie badałem świat replik, eksperymentując z różnymi agentami i sprzedawcami, gromadząc dużą kolekcję obejmującą wiele kategorii.
           </p>
         </motion.div>
       </div>
