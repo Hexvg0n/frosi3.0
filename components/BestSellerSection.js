@@ -54,7 +54,6 @@ export default function BestSellersSection() {
     const buttonVariants = {
         hover: {
             scale: 1.05,
-            backgroundColor: ['#4B5563', '#6B7280'],
             transition: {
                 duration: 0.3,
                 repeat: Infinity,

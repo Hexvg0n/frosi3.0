@@ -1,14 +1,14 @@
-// /pages/w2c.js (lub odpowiednia ścieżka)
+// ./pages/w2c/index.js
 
 import FooterSection from "@/components/FooterSection";
 import FooterTwoSection from "@/components/FooterTwoSection";
 import NavbarSection from "@/components/NavbarSection";
-import { Image } from "@nextui-org/react";
 import axios from 'axios';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Select, SelectSection, SelectItem } from "@nextui-org/select";
-import { useRouter } from 'next/router'; // Importowanie useRouter
-import debounce from 'lodash.debounce'; // Importowanie debounce z lodash
+import { useRouter } from 'next/router';
+import debounce from 'lodash.debounce';
+import { motion } from 'framer-motion';
+import { Search, ShoppingCart } from 'lucide-react';
 
 export default function W2C() {
   const [items, setItems] = useState([]);
@@ -18,35 +18,43 @@ export default function W2C() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [sortOrder, setSortOrder] = useState('');
   const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false); // Dodany stan dla loadera
+  const [isLoading, setIsLoading] = useState(false); // Stan dla loadera
 
   const exchangeRate = 3.90;
   const queryRef = useRef('');
 
+  // Definicje kategorii: klucz odpowiada wartościom w bazie danych
   const categories = {
     'Hoodies/Sweaters': "Bluzy",
-    Jackets: "Kurtki",
-    Accessories: "Biżuteria",
+    'Jackets': "Kurtki",
+    'Accessories': "Biżuteria",
     'Other Stuff': "Inne",
     'Pants/Shorts': "Spodnie",
-    Headware: "Czapki",
-    Shoes: "Buty",
-    'T-Shirts': "Koszulki",
+    'Headware': "Czapki",
+    'Shoes': "Buty",
+    'T-Shirts': 'Koszulki',
   };
 
   const router = useRouter(); // Inicjalizacja routera
 
-  // Funkcja fetchItems bez sortOrder w parametrach
+  // Funkcja fetchItems z sortOrder jako parametrem API
   const fetchItems = useCallback(async () => {
     setIsLoading(true); // Start loadera
     try {
       const query = queryRef.current.trim();
+      console.log('Fetching items with parameters:', {
+        category: selectedCategory,
+        bestbatch: bestBatchOnly,
+        name: query || undefined,
+        sortOrder: sortOrder || undefined,
+      });
+
       const response = await axios.get('/api/products', {
         params: {
-          Category: selectedCategory,
+          category: selectedCategory || undefined, // Poprawione na 'category'
           bestbatch: bestBatchOnly,
-          // sortOrder: sortOrder || undefined, // Usuń sortOrder z API
-          name: query || undefined, 
+          name: query || undefined,
+          sortOrder: sortOrder || undefined, // Dodane sortOrder
         },
       });
 
@@ -70,33 +78,15 @@ export default function W2C() {
         setHasMore(response.data.results.length > 0);
       }
 
-      // Nie wywołuj filterAndSortItems tutaj, użyj useEffect
+      // Aktualizacja filtrowanych elementów po pobraniu nowych danych
+      setFilteredItems(resultsWithBatch);
     } catch (error) {
       console.error('Error:', error.response ? error.response.data : error.message);
       setErrorMessage('Wystąpił błąd podczas pobierania danych.');
     } finally {
       setIsLoading(false); // Stop loadera
     }
-  }, [selectedCategory, bestBatchOnly]); // Usuń sortOrder z zależności
-
-  // Funkcja filtrowania i sortowania
-  const filterAndSortItems = useCallback(() => {
-    let result = [...items]; // Tworzymy kopię tablicy, aby uniknąć mutacji stanu
-
-    if (bestBatchOnly) {
-      result = result.filter(item => item.batch !== "Random");
-    }
-
-    if (sortOrder) {
-      result.sort((a, b) => {
-        const priceA = a.pricePLN;
-        const priceB = b.pricePLN;
-        return sortOrder === 'desc' ? priceB - priceA : priceA - priceB;
-      });
-    }
-
-    setFilteredItems(result);
-  }, [items, bestBatchOnly, sortOrder]);
+  }, [selectedCategory, bestBatchOnly, sortOrder]); // Dodane sortOrder
 
   // Debounced fetchItems
   const debouncedFetch = useCallback(debounce(fetchItems, 300), [fetchItems]);
@@ -107,11 +97,7 @@ export default function W2C() {
     debouncedFetch();
   };
 
-  // useEffect do filtrowania i sortowania po zmianie sortOrder, bestBatchOnly lub items
-  useEffect(() => {
-    filterAndSortItems();
-  }, [filterAndSortItems]);
-
+  // useEffect do pobierania danych przy zmianie zależności
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
@@ -125,9 +111,11 @@ export default function W2C() {
     <>
       <NavbarSection />
       <div className="flex flex-col md:flex-row items-start min-h-full pt-20 pb-20 mx-4">
-        {/* <div className="w-full md:w-1/3 md:sticky md:top-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 rounded-xl shadow-lg mr-4 overflow-y-auto max-h-screen">
+       
+        <div className="w-full md:w-1/3 md:sticky md:top-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 rounded-xl shadow-lg mr-4 overflow-y-auto max-h-screen">
           <div className="flex flex-col space-y-6">
-            <div className="flex items-center">
+           
+            {/* <div className="flex items-center">
               <input
                 type="checkbox"
                 id="bestBatchOnly"
@@ -136,7 +124,8 @@ export default function W2C() {
                 className="mr-3 w-4 h-4 text-gray-500 bg-gray-700 border-gray-600 focus:ring-gray-600 rounded"
               />
               <label htmlFor="bestBatchOnly" className="text-gray-300 font-medium">BESTBATCH</label>
-            </div>
+            </div> */}
+
             <div>
               <label htmlFor="category" className="block text-gray-300 font-medium mb-2">Kategoria</label>
               <select
@@ -147,10 +136,11 @@ export default function W2C() {
               >
                 <option value="">Wybierz kategorię (Brak)</option>
                 {Object.entries(categories).map(([key, label]) => (
-                  <option key={key} value={key}>{label}</option>
+                  <option key={key} value={key}>{label}</option> 
                 ))}
               </select>
             </div>
+
             <div>
               <label htmlFor="sort" className="block text-gray-300 font-medium mb-2">Sortuj według ceny</label>
               <select
@@ -165,7 +155,7 @@ export default function W2C() {
               </select>
             </div>
           </div>
-        </div> */}
+        </div>
 
         <div className="w-full md:w-2/3 flex flex-col items-center justify-start space-y-4 p-4">
           <div className="flex items-center w-full max-w-6xl space-x-4 mb-4">
@@ -203,7 +193,7 @@ export default function W2C() {
                   <img
                     src={item.image_url}
                     alt={item.name}
-                    className="w-full h-46 object-cover mb-2 rounded-lg cursor-pointer"
+                    className="w-full object-cover rounded-lg mb-2 flex-shrink-0 cursor-pointer"
                     onClick={() => window.open(item.link, '_blank')}
                   />
                   <h3 className="text-lg font-bold text-center truncate">{item.name}</h3>
@@ -211,18 +201,25 @@ export default function W2C() {
                 </div>
                 {item.link && (
                   <div className="w-full flex space-x-2 mt-2">
-                    <button
+                    <motion.button
                       onClick={() => window.open(item.link, '_blank')}
-                      className="w-3/4 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all "
+                      className="flex items-center w-3/4 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold transition-colors duration-300 hover:bg-gray-200"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.3 }}
                     >
+                      <ShoppingCart className="mr-2" size={20} />
                       Kup na AllChinaBuy
-                    </button>
-                    <button
+                    </motion.button>
+                    
+                    <motion.button
                       onClick={() => handleQCClick(item.link)} // Użycie nowej funkcji do przekierowania
-                      className="w-1/4 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-400 transition-all font-bold"
+                      className="flex items-center w-1/4 bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors duration-300 hover:bg-gray-400 font-bold"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.3 }}
                     >
+                      <Search className="mr-2" size={20} />
                       QC
-                    </button>
+                    </motion.button>
                   </div>
                 )}
               </div>

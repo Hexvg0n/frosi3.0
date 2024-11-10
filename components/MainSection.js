@@ -9,19 +9,19 @@ export default function MainSection() {
     const incrementCounters = () => {
       const interval1 = setInterval(() => {
         setCounter1((prev) => {
-          if (prev < 24000) return prev + 200;
+          if (prev < 25500) return prev + 200;
           clearInterval(interval1);
-          return 24000;
+          return 25500;
         });
       }, 5);
 
       const interval2 = setInterval(() => {
         setCounter2((prev) => {
-          if (prev < 1000) return prev + 10;
+          if (prev < 1500) return prev + 10;
           clearInterval(interval2);
-          return 1000;
+          return 1500;
         });
-      }, 10);
+      }, 15);
 
       const interval3 = setInterval(() => {
         setCounter3((prev) => {

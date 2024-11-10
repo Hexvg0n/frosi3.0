@@ -1,3 +1,5 @@
+//.pages/api/convert.js
+
 const platforms = {
   taobao: { regex: /(?:https?:\/\/)?(?:\w+\.)?taobao\.com/, urlPattern: "https://item.taobao.com/item.htm?id={{itemID}}" },
   tmall: { regex: /(?:https?:\/\/)?(?:www\.)?detail\.tmall\.com/, urlPattern: "https://detail.tmall.com/item.htm?id={{itemID}}" },
