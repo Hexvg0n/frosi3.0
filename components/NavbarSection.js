@@ -65,7 +65,7 @@ export default function NavbarSection() {
             <a href="https://discord.gg/invite/frosireps" target="_blank">DISCORD</a>
           </button>
           <button className="text-teal-500 hover:shadow-lg transition-all duration-300 border border-teal-500 rounded-lg px-6 py-2 lg:px-4 lg:py-2 hover:bg-teal-500 hover:text-white font-bold">
-            <a href="https://discord.gg/invite/frosireps" target="_blank">Zarejestruj się</a>
+            <a href="https://www.allchinabuy.com/en/page/login?partnercode=wf5ZpA&type=register" target="_blank">Zarejestruj się</a>
           </button>
         </div>
       </nav>
