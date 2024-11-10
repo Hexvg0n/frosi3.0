@@ -11,14 +11,14 @@ const platforms = {
 // Definicje pośredników
 const middlemen = {
   kakobuy: {
-    template: "https://www.kakobuy.com/item/details?url={{encodedUrl}}",
+    template: "https://www.kakobuy.com/item/details?url={{encodedUrl}}&affcode=frosireps",
     aliases: ["allchinabuy"],
     platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
     requiresDecoding: true
   },
   superbuy: {
-    template: "https://www.superbuy.com/en/page/buy/?url={{encodedUrl}}",
+    template: "https://www.superbuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=EEr5wI",
     aliases: ["allchinabuy"],
     platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
@@ -52,13 +52,13 @@ const middlemen = {
     requiresDecoding: false
   },
   lovegobuy: {
-    template: "https://www.lovegobuy.com/product?id={{itemID}}&shop_type={{platformDomain}}",
+    template: "https://www.lovegobuy.com/product?id={{itemID}}&shop_type={{platformDomain}}&invite_code=AF8PNG",
     platformMapping: { taobao: "taobao", "1688": "1688", weidian: "weidian" },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false
   },
   cnfans: {
-    template: "https://cnfans.com/product/?shop_type={{platformDomain}}&id={{itemID}}",
+    template: "https://cnfans.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=234625",
     platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false
@@ -70,7 +70,7 @@ const middlemen = {
     requiresDecoding: false
   },
   mulebuy: {
-    template: "https://mulebuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}",
+    template: "https://mulebuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=200216970",
     platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false

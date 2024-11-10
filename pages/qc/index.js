@@ -80,11 +80,11 @@ export default function QCPage() {
   const totalPages = Math.ceil(photos.length / photosPerPage);
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
 
   const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
   return (
@@ -108,11 +108,7 @@ export default function QCPage() {
           </button>
         </div>
 
-        {error && (
-          <div className="text-red-500 mt-4">
-            {error}
-          </div>
-        )}
+        {error && <div className="text-red-500 mt-4">{error}</div>}
 
         {isLoading && (
           <div className="mt-4">
@@ -128,7 +124,11 @@ export default function QCPage() {
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 bg-gray-600 text-gray-300 rounded-lg ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-500'}`}
+                className={`px-4 py-2 bg-gray-600 text-gray-300 rounded-lg ${
+                  currentPage === 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-500"
+                }`}
               >
                 Poprzednia
               </button>
@@ -138,7 +138,11 @@ export default function QCPage() {
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 bg-gray-600 text-gray-300 rounded-lg ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-500'}`}
+                className={`px-4 py-2 bg-gray-600 text-gray-300 rounded-lg ${
+                  currentPage === totalPages
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-gray-500"
+                }`}
               >
                 Następna
               </button>
