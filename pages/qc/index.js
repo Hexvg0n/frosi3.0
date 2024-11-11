@@ -13,12 +13,15 @@ export default function QCPage() {
   const { url } = router.query;
 
   const [link, setLink] = useState("");
-  const [photos, setPhotos] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [showPhotos, setShowPhotos] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Paginacja
   const [currentPage, setCurrentPage] = useState(1);
-  const photosPerPage = 20; // Liczba zdjęć na stronę
+  const groupsPerPage = 6; // Liczba grup na stronę
+  const totalPages = Math.ceil(groups.length / groupsPerPage);
 
   useEffect(() => {
     if (url) {
@@ -35,14 +38,14 @@ export default function QCPage() {
     }
 
     setIsLoading(true);
-    setPhotos([]);
+    setGroups([]);
     setShowPhotos(false);
     setError("");
-    setCurrentPage(1);
+    setCurrentPage(1); // Resetowanie do pierwszej strony
 
     try {
       const response = await axios.post("/api/qcPhotos", { url: linkToConvert });
-      const { photos, error } = response.data;
+      const { groups, error } = response.data;
 
       if (error) {
         setError(error);
@@ -50,8 +53,8 @@ export default function QCPage() {
         return;
       }
 
-      if (photos && photos.length > 0) {
-        setPhotos(photos);
+      if (groups && groups.length > 0) {
+        setGroups(groups);
         setShowPhotos(true);
         setError("");
       } else {
@@ -73,11 +76,10 @@ export default function QCPage() {
     handleConvertLink(link);
   };
 
-  // Paginacja
-  const indexOfLastPhoto = currentPage * photosPerPage;
-  const indexOfFirstPhoto = indexOfLastPhoto - photosPerPage;
-  const currentPhotos = photos.slice(indexOfFirstPhoto, indexOfLastPhoto);
-  const totalPages = Math.ceil(photos.length / photosPerPage);
+  // Logika Paginacji
+  const indexOfLastGroup = currentPage * groupsPerPage;
+  const indexOfFirstGroup = indexOfLastGroup - groupsPerPage;
+  const currentGroups = groups.slice(indexOfFirstGroup, indexOfLastGroup);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
@@ -91,6 +93,7 @@ export default function QCPage() {
     <>
       <NavbarSection />
       <div className="flex flex-col items-center justify-start min-h-full pt-20 pb-20 px-4">
+        {/* Formularz wyszukiwania */}
         <div className="flex items-center w-full max-w-md shadow-lg border border-gray-300 bg-gray-800 bg-opacity-60 rounded-lg p-5">
           <input
             type="text"
@@ -108,8 +111,10 @@ export default function QCPage() {
           </button>
         </div>
 
+        {/* Wyświetlanie błędów */}
         {error && <div className="text-red-500 mt-4">{error}</div>}
 
+        {/* Spinner ładowania */}
         {isLoading && (
           <div className="mt-4">
             <p className="text-gray-300">Ładowanie zdjęć...</p>
@@ -117,10 +122,22 @@ export default function QCPage() {
           </div>
         )}
 
-        {showPhotos && currentPhotos.length > 0 && (
+        {/* Wyświetlanie grup zdjęć */}
+        {showPhotos && currentGroups.length > 0 && (
           <div className="mt-10 w-full max-w-5xl">
-            <QCPhotos photos={currentPhotos} />
-            <div className="flex justify-center items-center mt-6 space-x-4">
+            {/* Układ Grid: wyświetlanie grup obok siebie */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-10">
+              {currentGroups.map((group, index) => (
+                <QCPhotos 
+                  key={index} 
+                  photos={group.photos} 
+                  groupIndex={indexOfFirstGroup + index + 1} 
+                />
+              ))}
+            </div>
+
+            {/* Paginacja */}
+            <div className="flex justify-center items-center mt-10 space-x-4">
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}

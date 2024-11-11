@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 
-function QCPhotos({ photos }) {
+function QCPhotos({ photos, groupIndex }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [loadingStates, setLoadingStates] = useState({}); // Stan ładowania dla każdego zdjęcia
+  const [loadingStates, setLoadingStates] = useState({});
+  const [currentIndex, setCurrentIndex] = useState(0); // Indeks aktualnie wyświetlanego zdjęcia
 
   const openLightbox = (photoUrl) => {
     setSelectedPhoto(photoUrl);
@@ -28,18 +29,39 @@ function QCPhotos({ photos }) {
     }));
   };
 
+  const showPrevious = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? photos.length - 1 : prevIndex - 1
+    );
+  };
+
+  const showNext = () => {
+    setCurrentIndex((prevIndex) =>
+      prevIndex === photos.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  if (photos.length === 0) {
+    return <div className="text-gray-300">Brak dostępnych zdjęć w tej grupie.</div>;
+  }
+
   return (
-    <div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-        {photos.map((photoUrl, index) => (
-          <div
-            key={index}
-            className="relative cursor-pointer"
-            onClick={() => openLightbox(photoUrl)}
-          >
-            {loadingStates[index] !== false && (
+    <div className="relative bg-gray-700 bg-opacity-75 p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
+      <div className="flex items-center justify-center w-full">
+        {/* Przyciski Nawigacyjne */}
+        <button
+          onClick={showPrevious}
+          className="absolute left-0 z-10 p-2 bg-gray-800 bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-opacity duration-300"
+          aria-label={`Poprzednie zdjęcie w grupie ${groupIndex}`}
+        >
+          &#8592;
+        </button>
+
+        <div className="flex items-center justify-center">
+          <div className="relative">
+            {/* Spinner ładowania */}
+            {loadingStates[currentIndex] !== false && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-lg">
-                {/* Spinner ładowania */}
                 <svg
                   className="animate-spin h-8 w-8 text-gray-500"
                   xmlns="http://www.w3.org/2000/svg"
@@ -62,20 +84,31 @@ function QCPhotos({ photos }) {
                 </svg>
               </div>
             )}
+            {/* Wyświetlanie Aktualnego Zdjęcia */}
             <img
-              src={photoUrl}
-              alt={`QC Photo ${index + 1}`}
-              className={`w-full h-auto object-cover rounded-lg shadow-md hover:opacity-80 transition-opacity ${
-                loadingStates[index] === false ? '' : 'invisible'
+              src={photos[currentIndex]}
+              alt={`QC Photo ${currentIndex + 1} w grupie ${groupIndex}`}
+              className={`max-h-full object-contain rounded-lg shadow-md hover:opacity-80 transition-opacity ${
+                loadingStates[currentIndex] === false ? '' : 'invisible'
               }`}
               loading="lazy"
-              onLoad={() => handleImageLoad(index)}
-              onError={() => handleImageError(index)}
+              onLoad={() => handleImageLoad(currentIndex)}
+              onError={() => handleImageError(currentIndex)}
+              onClick={() => openLightbox(photos[currentIndex])}
             />
           </div>
-        ))}
+        </div>
+
+        <button
+          onClick={showNext}
+          className="absolute right-0 z-10 p-2 bg-gray-800 bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-opacity duration-300"
+          aria-label={`Następne zdjęcie w grupie ${groupIndex}`}
+        >
+          &#8594;
+        </button>
       </div>
 
+      {/* Lightbox */}
       {selectedPhoto && (
         <div
           className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"

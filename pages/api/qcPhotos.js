@@ -1,4 +1,4 @@
-// ./pages/api/qcPhotos.js
+// /pages/api/qcPhotos.js
 
 import { convertUrlToPlatformAndID } from './convert';
 import axios from 'axios';
@@ -36,24 +36,19 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Nie znaleziono zdjęć dla tego produktu.' });
     }
 
-    // Pobierz wszystkie qcPhotos ze wszystkich elementów
-    const allPhotosData = data.reduce((acc, item) => {
-      if (item.qcPhotos && Array.isArray(item.qcPhotos)) {
-        return acc.concat(item.qcPhotos);
-      }
-      return acc;
-    }, []);
+    // Przetwarzanie danych grup
+    const groupsData = data.map(item => {
+      // Zakładamy, że każdy `item` reprezentuje wariant i zawiera `qcPhotos`
+      const variant = item.variant || "Default Variant";
+      const photos = item.qcPhotos 
+        ? item.qcPhotos.map(photo => `${req.headers.origin}/api/proxy?url=${encodeURIComponent(photo.photoUrl)}`)
+        : [];
+      return { variant, photos };
+    });
 
-    if (allPhotosData.length === 0) {
-      console.error("Nie znaleziono zdjęć w odpowiedzi API.");
-      return res.status(404).json({ error: 'Nie znaleziono zdjęć dla tego produktu.' });
-    }
+    console.log("Wygenerowane grupy ze zdjęciami:", groupsData);
 
-    // Generowanie linków proxy dla zdjęć
-    const photos = allPhotosData.map(photo => `${req.headers.origin}/api/proxy?url=${encodeURIComponent(photo.photoUrl)}`);
-    console.log("Wygenerowane linki do zdjęć przez proxy:", photos);
-
-    res.status(200).json({ photos });
+    res.status(200).json({ groups: groupsData });
   } catch (err) {
     console.error('Błąd podczas pobierania zdjęć z API finds.ly:', err.message);
     if (err.response) {
