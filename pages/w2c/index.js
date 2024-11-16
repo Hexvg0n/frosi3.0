@@ -184,47 +184,48 @@ export default function W2C() {
           )}
 
           <div className="w-full max-w-6xl mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 justify-center">
-            {filteredItems.length > 0 && filteredItems.map(item => (
-              <div
-                key={item._id}
-                className="bg-gray-700 bg-opacity-70 text-gray-300 font-semibold rounded-lg shadow-lg p-4 flex flex-col justify-between h-full"
-              >
-                <div className="flex flex-col flex-grow">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full object-cover rounded-lg mb-2 flex-shrink-0 cursor-pointer"
-                    onClick={() => window.open(item.link, '_blank')}
-                  />
-                  <h3 className="text-lg font-bold text-center truncate">{item.name}</h3>
-                  <p className="text-sm text-gray-400 text-center truncate">{item.price} ({item.pricePLN.toFixed(2)} PLN)</p>
-                </div>
-                {item.link && (
-                  <div className="w-full flex space-x-2 mt-2">
-                    <motion.button
-                      onClick={() => window.open(item.link, '_blank')}
-                      className="flex items-center w-3/4 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold transition-colors duration-300 hover:bg-gray-200"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ShoppingCart className="mr-2" size={20} />
-                      Kup na AllChinaBuy
-                    </motion.button>
-                    
-                    <motion.button
-                      onClick={() => handleQCClick(item.link)} // Użycie nowej funkcji do przekierowania
-                      className="flex items-center w-1/4 bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors duration-300 hover:bg-gray-400 font-bold"
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <Search className="mr-2" size={20} />
-                      QC
-                    </motion.button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+  {filteredItems.length > 0 && filteredItems.map(item => (
+    <div
+      key={item._id}
+      className="bg-gray-700 bg-opacity-70 text-gray-300 font-semibold rounded-lg shadow-lg p-4 flex flex-col justify-between h-full"
+    >
+      <div className="flex flex-col flex-grow">
+        <img
+          src={item.image_url}
+          alt={item.name}
+          className="w-full object-cover rounded-lg mb-2 flex-shrink-0 cursor-pointer"
+          onClick={() => window.open(item.link, '_blank')}
+        />
+        <h3 className="text-lg font-bold text-center truncate">{item.name}</h3>
+        <p className="text-sm text-gray-400 text-center truncate">{item.price} ({item.pricePLN.toFixed(2)} PLN)</p>
+      </div>
+      {item.link && (
+        <div className="w-full flex flex-col space-y-2 mt-2">
+          <motion.button
+            onClick={() => window.open(item.link, '_blank')}
+            className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold transition-colors duration-300 hover:bg-gray-200 flex items-center justify-center"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ShoppingCart className="mr-2" size={20} />
+            Kup na AllChinaBuy
+          </motion.button>
+          
+          <motion.button
+            onClick={() => handleQCClick(item.link)}
+            className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors duration-300 hover:bg-gray-400 font-bold flex items-center justify-center"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Search className="mr-2" size={20} />
+            QC
+          </motion.button>
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+
 
           {!hasMore && (
             <div className="w-full max-w-6xl mt-4 p-4 bg-gray-800 text-gray-300 text-center font-semibold rounded-lg">
