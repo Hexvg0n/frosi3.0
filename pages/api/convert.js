@@ -1,38 +1,73 @@
-//.pages/api/convert.js
+// pages/api/convert.js
 
 const platforms = {
-  taobao: { regex: /(?:https?:\/\/)?(?:\w+\.)?taobao\.com/, urlPattern: "https://item.taobao.com/item.htm?id={{itemID}}" },
-  tmall: { regex: /(?:https?:\/\/)?(?:www\.)?detail\.tmall\.com/, urlPattern: "https://detail.tmall.com/item.htm?id={{itemID}}" },
-  "1688": { regex: /(?:https?:\/\/)?(?:\w+\.)?1688\.com/, urlPattern: "https://detail.1688.com/offer/{{itemID}}.html" },
-  weidian: { regex: /(?:https?:\/\/)?(?:www\.)?weidian\.com/, urlPattern: "https://weidian.com/item.html?itemID={{itemID}}" },
+  taobao: { 
+    regex: /(?:https?:\/\/)?(?:\w+\.)?taobao\.com/, 
+    urlPattern: "https://item.taobao.com/item.htm?id={{itemID}}" 
+  },
+  tmall: { 
+    regex: /(?:https?:\/\/)?(?:www\.)?detail\.tmall\.com/, 
+    urlPattern: "https://detail.tmall.com/item.htm?id={{itemID}}" 
+  },
+  "1688": { 
+    regex: /(?:https?:\/\/)?(?:\w+\.)?1688\.com/, 
+    urlPattern: "https://detail.1688.com/offer/{{itemID}}.html" 
+  },
+  weidian: { 
+    regex: /(?:https?:\/\/)?(?:www\.)?weidian\.com/, 
+    urlPattern: "https://weidian.com/item.html?itemID={{itemID}}" 
+  },
+  hoobuy: { 
+    regex: /(?:https?:\/\/)?(?:www\.)?hoobuy\.com/, 
+    urlPattern: "https://hoobuy.com/product/{{platformCode}}/{{itemID}}" 
+  },
 };
-
 
 // Definicje pośredników
 const middlemen = {
   kakobuy: {
     template: "https://www.kakobuy.com/item/details?url={{encodedUrl}}&affcode=frosireps",
     aliases: ["allchinabuy"],
-    platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
+    platformMapping: { 
+      taobao: "item.taobao.com", 
+      "1688": "detail.1688.com", 
+      weidian: "weidian.com", 
+      tmall: "detail.tmall.com" 
+    },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
     requiresDecoding: true
   },
   superbuy: {
     template: "https://www.superbuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=EEr5wI",
     aliases: ["allchinabuy"],
-    platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
+    platformMapping: { 
+      taobao: "item.taobao.com", 
+      "1688": "detail.1688.com", 
+      weidian: "weidian.com", 
+      tmall: "detail.tmall.com" 
+    },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
     requiresDecoding: true
   },
   cssbuy: {
     template: "https://cssbuy.com/item{{cssPlatform}}{{itemID}}.html",
-    platformMapping: { taobao: "-", "1688": "-1688-", weidian: "-micro-", tmall: "-tmall-" },
+    platformMapping: { 
+      taobao: "-", 
+      "1688": "-1688-", 
+      weidian: "-micro-", 
+      tmall: "-tmall-" 
+    },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
     requiresDecoding: false
   },
   allchinabuy: {
     template: "https://www.allchinabuy.com/en/page/buy/?url={{encodedUrl}}?partnercode=wf5ZpA",
-    platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
+    platformMapping: { 
+      taobao: "item.taobao.com", 
+      "1688": "detail.1688.com", 
+      weidian: "weidian.com", 
+      tmall: "detail.tmall.com" 
+    },
     itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
     requiresDecoding: true
   },
@@ -53,41 +88,60 @@ const middlemen = {
   },
   lovegobuy: {
     template: "https://www.lovegobuy.com/product?id={{itemID}}&shop_type={{platformDomain}}&invite_code=AF8PNG",
-    platformMapping: { taobao: "taobao", "1688": "1688", weidian: "weidian" },
+    platformMapping: { 
+      taobao: "taobao", 
+      "1688": "1688", 
+      weidian: "weidian" 
+    },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false
   },
   cnfans: {
     template: "https://cnfans.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=234625",
-    platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
+    platformMapping: { 
+      taobao: "taobao", 
+      "1688": "ali_1688", 
+      weidian: "weidian" 
+    },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false
   },
   joyabuy: {
     template: "https://joyabuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}",
-    platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
+    platformMapping: { 
+      taobao: "taobao", 
+      "1688": "ali_1688", 
+      weidian: "weidian" 
+    },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false
   },
   mulebuy: {
     template: "https://mulebuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=200216970",
-    platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
+    platformMapping: { 
+      taobao: "taobao", 
+      "1688": "ali_1688", 
+      weidian: "weidian" 
+    },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false
   },
-  hoobuy:{
-    template: "https://hoobuy.com/product/{{platformDomain}}/{{itemID}}",
-    platformMapping: { taobao: "1", "1688": "0", weidian: "2" },
-    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
+  hoobuy: {
+    template: "https://hoobuy.com/product/{{platformCode}}/{{itemID}}",
+    aliases: [], // Dodaj ewentualne aliasy, jeśli istnieją
+    platformMapping: { 
+      '0': 'detail.1688.com', 
+      '1': 'item.taobao.com', 
+      '2': 'weidian.com' 
+    },
+    itemIDPattern: [/product\/(\d+)\/(\d+)/], // Captures platformCode and itemID
     requiresDecoding: false
-  }
+  },
 };
-
-
 
 // Funkcje pomocnicze
 
-function extractItemID(url, patterns) {
+function extractItemID(url, patterns, middlemanName) {
   console.log("Extracting itemID from URL:", url);
 
   // Dekoduj URL, aby wzorce mogły działać na pełnym linku
@@ -96,14 +150,19 @@ function extractItemID(url, patterns) {
   for (const pattern of patterns) {
     const match = decodedUrl.match(pattern);
     if (match && match[1]) {
-      console.log(`Znaleziono itemID: ${match[1]} dla wzorca: ${pattern}`);
-      return match[1];
+      if (middlemanName === 'hoobuy' && match.length >= 3) {
+        // Dla hoobuy, zwróć zarówno platformCode, jak i itemID
+        console.log(`Znaleziono platformCode: ${match[1]}, itemID: ${match[2]} dla wzorca: ${pattern}`);
+        return { platformCode: match[1], itemID: match[2] };
+      } else {
+        console.log(`Znaleziono itemID: ${match[1]} dla wzorca: ${pattern}`);
+        return match[1];
+      }
     }
   }
   console.log("Nie udało się znaleźć itemID dla URL:", url);
   return null;
 }
-
 
 function identifyPlatform(url) {
   console.log("Identifying platform for URL:", url);
@@ -143,20 +202,38 @@ function convertUrlToMiddleman(url, targetMiddleman) {
     return null;
   }
 
-  const itemID = extractItemID(url, middleman.itemIDPattern);
-  if (!itemID) {
+  const itemIDResult = extractItemID(url, middleman.itemIDPattern, targetMiddleman);
+  if (!itemIDResult) {
     console.log(`Nie udało się pobrać itemID dla ${targetMiddleman}, konwersja anulowana.`);
     return null;
+  }
+
+  let platformCode = null;
+  let itemID = null;
+
+  if (targetMiddleman === 'hoobuy') {
+    // Dla hoobuy, itemIDResult zawiera platformCode i itemID
+    platformCode = itemIDResult.platformCode;
+    itemID = itemIDResult.itemID;
+  } else {
+    // Dla innych pośredników, itemIDResult jest po prostu itemID
+    itemID = itemIDResult;
   }
 
   const platformDomain = middleman.platformMapping[platformName] || "";
   const encodedUrl = encodeURIComponent(url);
 
-  const convertedUrl = middleman.template
+  let convertedUrl = middleman.template
     .replace("{{encodedUrl}}", encodedUrl)
     .replace("{{platformDomain}}", platformDomain)
     .replace("{{itemID}}", itemID)
     .replace("{{cssPlatform}}", platformDomain);
+
+  if (targetMiddleman === 'hoobuy') {
+    convertedUrl = middleman.template
+      .replace("{{platformCode}}", platformCode)
+      .replace("{{itemID}}", itemID);
+  }
 
   console.log(`Skonwertowany URL dla pośrednika ${targetMiddleman}: ${convertedUrl}`);
   return convertedUrl;
@@ -172,16 +249,23 @@ function convertMiddlemanToOriginal(url) {
       console.log(`Found middleman match: ${middlemanName}`);
 
       const processedUrl = decodeUrlIfNeeded(url, middleman);
-      const itemID = extractItemID(processedUrl, middleman.itemIDPattern);
+      const itemIDResult = extractItemID(processedUrl, middleman.itemIDPattern, middlemanName);
       
-      if (itemID) {
+      if (itemIDResult) {
         let platformName = null;
-        
-        for (const [platformKey, platformValue] of Object.entries(middleman.platformMapping)) {
-          if (processedUrl.includes(platformValue)) {
-            platformName = platformKey;
-            break;
-          }
+        let itemID = null;
+
+        if (middlemanName === 'hoobuy') {
+          // Dla hoobuy, wyodrębnij platformCode i itemID
+          const { platformCode, itemID: extractedItemID } = itemIDResult;
+          platformName = Object.keys(platforms).find(
+            key => platforms[key].regex.test(`https://${middleman.platformMapping[platformCode]}`)
+          );
+          itemID = extractedItemID;
+        } else {
+          // Dla innych pośredników, standardowe przetwarzanie
+          itemID = itemIDResult;
+          platformName = identifyPlatform(url);
         }
         
         if (platformName && platforms[platformName]) {
@@ -245,11 +329,12 @@ export default function handler(req, res) {
   console.log("Zwracanie przekształconych URL-ów:", convertedUrls);
   res.status(200).json(convertedUrls);
 }
+
 export function convertUrlToPlatformAndID(url) {
   const platformName = identifyPlatform(url);
   if (!platformName) return { error: 'Platforma nieznana' };
 
-  const itemID = extractItemID(url, middlemen['kakobuy'].itemIDPattern);
+  const itemID = extractItemID(url, middlemen['kakobuy'].itemIDPattern, 'kakobuy');
   if (!itemID) return { error: 'Nie udało się znaleźć itemID' };
 
   return {
