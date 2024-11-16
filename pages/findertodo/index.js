@@ -1,3 +1,4 @@
+// /pages/finder/index.js
 import FooterSection from "@/components/FooterSection";
 import FooterTwoSection from "@/components/FooterTwoSection";
 import NavbarSection from "@/components/NavbarSection";
@@ -13,6 +14,17 @@ export default function Finder() {
   const [errorMessage, setErrorMessage] = useState(''); // Track error messages
 
   const exchangeRate = 3.90; // Exchange rate from USD to PLN
+
+  // Funkcja do konwersji linków na AllChinaBuy
+  const convertToAllChinaBuy = async (url) => {
+    try {
+      const response = await axios.post('/api/convert', { url });
+      return response.data.allchinabuy || null; // Zakładam, że API zwraca klucz 'allchinabuy'
+    } catch (error) {
+      console.error('Błąd podczas konwersji linku:', error);
+      return null;
+    }
+  };
 
   const handleFind = async () => {
     if (isCooldown) return;
@@ -52,7 +64,19 @@ export default function Finder() {
         setErrorMessage('Brak wyników dla podanego produktu.');
         setItems([]);
       } else {
-        setItems(resultsWithBatch);
+        // Konwersja linków na AllChinaBuy
+        const convertedItems = await Promise.all(resultsWithBatch.map(async (item) => {
+          if (item.links && item.links[0]) {
+            const allChinaBuyLink = await convertToAllChinaBuy(item.links[0]);
+            return {
+              ...item,
+              allchinaLink: allChinaBuyLink, // Dodanie nowego klucza z linkiem AllChinaBuy
+            };
+          }
+          return item;
+        }));
+
+        setItems(convertedItems);
         setErrorMessage('');
       }
 
@@ -124,12 +148,19 @@ export default function Finder() {
               <h3 className="text-lg font-bold text-center">{item.name}</h3>
               <p className="text-sm text-gray-400 text-center">{item.price} ({item.pricePLN} PLN)</p>
               <p className="text-sm text-gray-500 text-center">Batch: {item.batch}</p>
-              {item.links[0] && (
+              {item.allchinaLink ? (
+                <button
+                  onClick={() => window.open(item.allchinaLink, '_blank')}
+                  className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all font-bold mt-2"
+                >
+                  Kup na AllChinaBuy
+                </button>
+              ) : (
                 <button
                   onClick={() => window.open(item.links[0], '_blank')}
                   className="w-full bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-all font-bold mt-2"
                 >
-                  Kup na HagoBuy
+                  Kup na AllChinaBuy
                 </button>
               )}
             </div>

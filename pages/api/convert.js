@@ -74,6 +74,12 @@ const middlemen = {
     platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
     itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
     requiresDecoding: false
+  },
+  hoobuy:{
+    template: "https://hoobuy.com/product/{{platformDomain}}/{{itemID}}",
+    platformMapping: { taobao: "1", "1688": "0", weidian: "2" },
+    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
+    requiresDecoding: false
   }
 };
 

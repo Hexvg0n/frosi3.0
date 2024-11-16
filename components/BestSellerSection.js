@@ -14,13 +14,13 @@ export default function BestSellersSection() {
         { id: 7, title: "Rick Owens Rammones", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D741087802238?partnercode=wf5ZpA", image: "/images/107.png" },
         { id: 8, title: "TNF Jacket", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6503405541%26spider_token%3D5559?partnercode=wf5ZpA", image: "/images/108.png" },
     ];
-    const router = useRouter(); // Initialize router
+    const router = useRouter(); // Inicjalizacja routera
 
     const handleQCClick = (link) => {
         router.push(`/qc?url=${encodeURIComponent(link)}`);
     };
 
-    // Define animation variants
+    // Definicja wariantów animacji
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -64,7 +64,7 @@ export default function BestSellersSection() {
 
     return (
         <motion.div
-            className="p-8 mt-[3vh] min-h-[80vh] border-t-2 border-gray-500"
+            className="p-8 mt-0 min-h-auto border-t-2 border-gray-500 mb-12"
             initial="hidden"
             animate="visible"
             variants={containerVariants}

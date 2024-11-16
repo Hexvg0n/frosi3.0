@@ -25,11 +25,11 @@ export default function MainSection() {
 
       const interval3 = setInterval(() => {
         setCounter3((prev) => {
-          if (prev < 30000) return prev + 200; // Zwiększenie wartości inkrementacji
+          if (prev < 30000) return prev + 200;
           clearInterval(interval3);
           return 30000;
         });
-      }, 5); // Ustawienie bardziej realistycznego interwału
+      }, 5);
     };
 
     incrementCounters();
@@ -37,32 +37,32 @@ export default function MainSection() {
 
   return (
     <div
-      className="flex flex-col items-center justify-center h-[80vh] text-white p-24 border-gray-500 md:mt-0 mt-[8vh]"
+      className="flex flex-col items-center justify-center text-white p-4 md:p-24 border-gray-500 md:mt-0 mt-8 mb-12"
       style={{ backgroundColor: "transparent", zIndex: 10 }}
     >
       <img
         src="/images/logo.png"
         alt="Logo"
-        className="h-full max-h-[35vh]  object-contain mb-12 transition-all duration-300 hover:scale-110"
+        className="w-40 h-40 md:w-[500px] md:h-[500px] object-contain mb-12 transition-transform duration-300 hover:scale-110"
       />
-      <h1 className="text-5xl font-bold mb-4 text-center">
+      <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
         Jedyna strona której potrzebujesz
       </h1>
-      <p className="text-3xl mb-4 text-center">
+      <p className="text-xl md:text-3xl mb-4 text-center">
         Kod <span className="font-bold">"Frosi"</span> na -50 CNY 
       </p>
-      <div className="flex justify-center space-x-6 md:space-x-16 mt-10 md:mt-16">
+      <div className="flex flex-col md:flex-row justify-center space-y-6 md:space-y-0 space-x-0 md:space-x-16 mt-10 md:mt-16">
         <div className="text-center">
-          <p className="text-xl md:text-4xl font-bold">+{counter1}</p>
-          <p className="text-lg">Użytkowników discord</p>
+          <p className="text-lg md:text-4xl font-bold">+{counter1}</p>
+          <p className="text-md md:text-lg">Użytkowników Discord</p>
         </div>
         <div className="text-center">
-          <p className="text-xl md:text-4xl font-bold">+{counter2}</p>
-          <p className="text-lg">Przedmiotów na stronie</p>
+          <p className="text-lg md:text-4xl font-bold">+{counter2}</p>
+          <p className="text-md md:text-lg">Przedmiotów na stronie</p>
         </div>
         <div className="text-center">
-          <p className="text-xl md:text-4xl font-bold">+{counter3}</p>
-          <p className="text-lg">Użytkowników naszej strony</p>
+          <p className="text-lg md:text-4xl font-bold">+{counter3}</p>
+          <p className="text-md md:text-lg">Użytkowników naszej strony</p>
         </div>
       </div>
     </div>
