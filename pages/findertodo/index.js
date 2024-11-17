@@ -9,17 +9,16 @@ import { generateSignature } from "@/signature";
 export default function Finder() {
   const [items, setItems] = useState([]);
   const [isCooldown, setIsCooldown] = useState(false);
-  const [fullScreenImageIndex, setFullScreenImageIndex] = useState(null); // Track which image is currently in fullscreen
-  const [fullScreenImages, setFullScreenImages] = useState([]); // Store images for full-screen view
-  const [errorMessage, setErrorMessage] = useState(''); // Track error messages
+  const [fullScreenImageIndex, setFullScreenImageIndex] = useState(null);
+  const [fullScreenImages, setFullScreenImages] = useState([]);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const exchangeRate = 3.90; // Exchange rate from USD to PLN
+  const exchangeRate = 3.90;
 
-  // Funkcja do konwersji linków na AllChinaBuy
   const convertToAllChinaBuy = async (url) => {
     try {
       const response = await axios.post('/api/convert', { url });
-      return response.data.allchinabuy || null; // Zakładam, że API zwraca klucz 'allchinabuy'
+      return response.data.allchinabuy || null;
     } catch (error) {
       console.error('Błąd podczas konwersji linku:', error);
       return null;
@@ -64,13 +63,12 @@ export default function Finder() {
         setErrorMessage('Brak wyników dla podanego produktu.');
         setItems([]);
       } else {
-        // Konwersja linków na AllChinaBuy
         const convertedItems = await Promise.all(resultsWithBatch.map(async (item) => {
           if (item.links && item.links[0]) {
             const allChinaBuyLink = await convertToAllChinaBuy(item.links[0]);
             return {
               ...item,
-              allchinaLink: allChinaBuyLink, // Dodanie nowego klucza z linkiem AllChinaBuy
+              allchinaLink: allChinaBuyLink,
             };
           }
           return item;
@@ -92,10 +90,10 @@ export default function Finder() {
   };
 
   const openFullScreen = (images, index) => {
-    setFullScreenImages(images);
+    setFullScreenImages(images.map(img => `https://api.skaut.lol${img}`));
     setFullScreenImageIndex(index);
   };
-
+  
   const closeFullScreen = () => {
     setFullScreenImages([]);
     setFullScreenImageIndex(null);
@@ -140,10 +138,10 @@ export default function Finder() {
               className="bg-gray-700 bg-opacity-70 text-gray-300 font-semibold rounded-lg shadow-lg p-4 flex flex-col items-center gap-2 hover:bg-gray-600 transition-all duration-300"
             >
               <img
-                src={item.images[0]}
+                src={`https://api.skaut.lol${item.images[0]}`}
                 alt={item.name}
                 className="w-full h-32 object-cover mb-2 rounded-lg cursor-pointer"
-                onClick={() => openFullScreen(item.images, 0)}
+                onClick={() => openFullScreen(item.images, 0)} // Przekazanie tylko ścieżek
               />
               <h3 className="text-lg font-bold text-center">{item.name}</h3>
               <p className="text-sm text-gray-400 text-center">{item.price} ({item.pricePLN} PLN)</p>
