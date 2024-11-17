@@ -102,7 +102,7 @@ export default function BestSellersSection() {
                                 >
                                     <ShoppingCart className="mr-2" size={20} />
                                     <Link href={item.linkTo}>
-                                        Kup na AllChinaBuy
+                                        Kup na KakoBuy
                                     </Link>
                                 </motion.button>
                             </div>

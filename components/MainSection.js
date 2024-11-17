@@ -49,7 +49,7 @@ export default function MainSection() {
         Jedyna strona której potrzebujesz
       </h1>
       <p className="text-xl md:text-3xl mb-4 text-center">
-        Kod <span className="font-bold">"Frosi"</span> na -50 CNY 
+        Kod <span className="font-bold">"Fro100"</span> na -100 CNY 
       </p>
       <div className="flex flex-col md:flex-row justify-center space-y-6 md:space-y-0 space-x-0 md:space-x-16 mt-10 md:mt-16">
         <div className="text-center">

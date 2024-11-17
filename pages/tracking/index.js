@@ -58,7 +58,7 @@ export default function Tracking() {
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <input
               type="text"
-              placeholder="Wprowadź numer dokumentu"
+              placeholder="Wprowadź numer paczki"
               value={trackingCode}
               onChange={(e) => setTrackingCode(e.target.value)}
               className="w-full p-3 rounded-lg border border-gray-600 bg-gray-700 text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-300"
