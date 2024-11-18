@@ -113,6 +113,19 @@ function QCPhotos({ photos, groupIndex }) {
     }
   }, [selectedPhoto]);
 
+  // Resetowanie currentIndex przy zmianie photos (paginacja)
+  useEffect(() => {
+    if (currentIndex !== 0) {
+      setCurrentIndex(0);
+      // Opcjonalnie zamknij lightbox, jeśli jest otwarty
+      if (selectedPhoto) {
+        closeLightbox();
+      }
+    }
+    // Resetowanie loadingStates dla nowych zdjęć
+    setLoadingStates({});
+  }, [photos]);
+
   if (photos.length === 0) {
     return <div className="text-gray-300">Brak dostępnych zdjęć w tej grupie.</div>;
   }

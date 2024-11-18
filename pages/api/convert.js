@@ -19,7 +19,20 @@ const platforms = {
   },
   hoobuy: { 
     regex: /(?:https?:\/\/)?(?:www\.)?hoobuy\.com/, 
-    urlPattern: "https://hoobuy.com/product/{{platformCode}}/{{itemID}}" 
+    urlPattern: "https://hoobuy.com/product/{{platformCode}}/{{itemID}}", 
+    itemIDPattern: [
+      /product\/(\d+)\/(\d+)/,
+      /product\/(\d+)-(\d+)/,
+      /product\/platform\/(\d+)\/(\d+)/,
+      /product\/(\d+)\/item\/(\d+)/
+    ],
+    requiresDecoding: false,
+    platformMapping: { 
+      '0': 'detail.1688.com', 
+      '1': 'item.taobao.com', 
+      '2': 'weidian.com' 
+    },
+    aliases: []
   },
 };
 
@@ -142,37 +155,32 @@ const middlemen = {
 // Funkcje pomocnicze
 
 function extractItemID(url, patterns, middlemanName) {
-  console.log("Extracting itemID from URL:", url);
+  console.log(`Extracting itemID from URL: ${url} for middleman: ${middlemanName}`);
 
-  // Dekoduj URL, aby wzorce mogły działać na pełnym linku
   const decodedUrl = decodeURIComponent(url);
 
   for (const pattern of patterns) {
     const match = decodedUrl.match(pattern);
     if (match && match[1]) {
       if (middlemanName === 'hoobuy' && match.length >= 3) {
-        // Dla hoobuy, zwróć zarówno platformCode, jak i itemID
-        console.log(`Znaleziono platformCode: ${match[1]}, itemID: ${match[2]} dla wzorca: ${pattern}`);
+        console.log(`Matched hoobuy pattern: PlatformCode=${match[1]}, ItemID=${match[2]}`);
         return { platformCode: match[1], itemID: match[2] };
       } else {
-        console.log(`Znaleziono itemID: ${match[1]} dla wzorca: ${pattern}`);
+        console.log(`Matched pattern: ItemID=${match[1]}`);
         return match[1];
       }
     }
   }
-  console.log("Nie udało się znaleźć itemID dla URL:", url);
+  console.log(`No matching pattern found for URL: ${url}`);
   return null;
 }
 
 function identifyPlatform(url) {
-  console.log("Identifying platform for URL:", url);
   for (const [name, platform] of Object.entries(platforms)) {
     if (platform.regex.test(url)) {
-      console.log(`Rozpoznano platformę: ${name}`);
       return name;
     }
   }
-  console.log("Nie udało się rozpoznać platformy dla URL:", url);
   return null;
 }
 
@@ -180,31 +188,29 @@ function decodeUrlIfNeeded(url, middleman) {
   if (middleman.requiresDecoding) {
     const decodedUrlPart = url.split("url=")[1];
     const decodedUrl = decodedUrlPart ? decodeURIComponent(decodedUrlPart) : url;
-    console.log(`Dekodowany URL: ${decodedUrl}`);
     return decodedUrl;
   }
-  console.log("Dekodowanie nie jest wymagane dla URL:", url);
   return url;
 }
 
 function convertUrlToMiddleman(url, targetMiddleman) {
-  console.log(`Konwersja URL na link pośrednika dla: ${targetMiddleman}`);
-
+  console.log(`Converting URL to middleman: ${url} using ${targetMiddleman}`);
+  
   const platformName = identifyPlatform(url);
   if (!platformName) {
-    console.log(`Platforma nieznana dla ${targetMiddleman}, konwersja anulowana.`);
+    console.log(`Platform not identified for URL: ${url}`);
     return null;
   }
 
   const middleman = middlemen[targetMiddleman];
   if (!middleman) {
-    console.log(`Nieznany pośrednik: ${targetMiddleman}, konwersja anulowana.`);
+    console.log(`Middleman not found: ${targetMiddleman}`);
     return null;
   }
 
   const itemIDResult = extractItemID(url, middleman.itemIDPattern, targetMiddleman);
   if (!itemIDResult) {
-    console.log(`Nie udało się pobrać itemID dla ${targetMiddleman}, konwersja anulowana.`);
+    console.log(`ItemID extraction failed for URL: ${url}`);
     return null;
   }
 
@@ -212,12 +218,12 @@ function convertUrlToMiddleman(url, targetMiddleman) {
   let itemID = null;
 
   if (targetMiddleman === 'hoobuy') {
-    // Dla hoobuy, itemIDResult zawiera platformCode i itemID
     platformCode = itemIDResult.platformCode;
     itemID = itemIDResult.itemID;
+    console.log(`Hoobuy - PlatformCode: ${platformCode}, ItemID: ${itemID}`);
   } else {
-    // Dla innych pośredników, itemIDResult jest po prostu itemID
     itemID = itemIDResult;
+    console.log(`ItemID: ${itemID}`);
   }
 
   const platformDomain = middleman.platformMapping[platformName] || "";
@@ -235,19 +241,15 @@ function convertUrlToMiddleman(url, targetMiddleman) {
       .replace("{{itemID}}", itemID);
   }
 
-  console.log(`Skonwertowany URL dla pośrednika ${targetMiddleman}: ${convertedUrl}`);
+  console.log(`Converted URL for ${targetMiddleman}: ${convertedUrl}`);
   return convertedUrl;
 }
 
 function convertMiddlemanToOriginal(url) {
-  console.log("Attempting to convert middleman URL to original:", url);
-
   for (const [middlemanName, middleman] of Object.entries(middlemen)) {
     const aliases = [middlemanName, ...(middleman.aliases || [])];
     
     if (aliases.some(alias => url.includes(alias))) {
-      console.log(`Found middleman match: ${middlemanName}`);
-
       const processedUrl = decodeUrlIfNeeded(url, middleman);
       const itemIDResult = extractItemID(processedUrl, middleman.itemIDPattern, middlemanName);
       
@@ -256,42 +258,39 @@ function convertMiddlemanToOriginal(url) {
         let itemID = null;
 
         if (middlemanName === 'hoobuy') {
-          // Dla hoobuy, wyodrębnij platformCode i itemID
           const { platformCode, itemID: extractedItemID } = itemIDResult;
           platformName = Object.keys(platforms).find(
             key => platforms[key].regex.test(`https://${middleman.platformMapping[platformCode]}`)
           );
           itemID = extractedItemID;
+          console.log(`Hoobuy - Original Platform: ${platformName}, ItemID: ${itemID}`);
         } else {
-          // Dla innych pośredników, standardowe przetwarzanie
           itemID = itemIDResult;
           platformName = identifyPlatform(url);
+          console.log(`Original Platform: ${platformName}, ItemID: ${itemID}`);
         }
         
         if (platformName && platforms[platformName]) {
           const originalUrl = platforms[platformName].urlPattern.replace("{{itemID}}", itemID);
           console.log(`Converted to original URL: ${originalUrl}`);
           return originalUrl;
-        } else {
-          console.log("Platform name not found or not supported:", platformName);
         }
-      } else {
-        console.log("ItemID not found for middleman URL:", processedUrl);
       }
     }
   }
-
-  console.log("No middleman match found. Returning null.");
   return null;
 }
 
-// Główna funkcja API
+// Main API handler
 export default function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const { url } = req.body;
 
   if (!url) {
-    console.log("Niepoprawne dane wejściowe.");
-    return res.status(400).json({ error: 'Niepoprawne dane wejściowe' });
+    return res.status(400).json({ error: 'Invalid input data' });
   }
 
   let convertedUrls = {};
@@ -300,42 +299,34 @@ export default function handler(req, res) {
   if (originalUrl) {
     convertedUrls['original'] = originalUrl;
     for (const middleman in middlemen) {
-      console.log(`Przetwarzanie konwersji dla ${middleman}`);
       const convertedUrl = convertUrlToMiddleman(originalUrl, middleman);
       if (convertedUrl) {
         convertedUrls[middleman] = convertedUrl;
-      } else {
-        console.log(`Nie udało się wygenerować URL dla ${middleman}`);
       }
     }
   } else {
-    console.log("Original URL could not be derived, processing as middleman URLs only.");
     for (const middleman in middlemen) {
-      console.log(`Przetwarzanie konwersji dla ${middleman}`);
       const convertedUrl = convertUrlToMiddleman(url, middleman);
       if (convertedUrl) {
         convertedUrls[middleman] = convertedUrl;
-      } else {
-        console.log(`Nie udało się wygenerować URL dla ${middleman}`);
       }
     }
   }
 
   if (Object.keys(convertedUrls).length === 0) {
-    console.log("Nie znaleziono wyników dla podanego linku.");
-    return res.status(404).json({ error: 'Nie znaleziono wyników dla podanego linku.' });
+    return res.status(404).json({ error: 'No results found for the given link.' });
   }
 
-  console.log("Zwracanie przekształconych URL-ów:", convertedUrls);
   res.status(200).json(convertedUrls);
 }
 
+// Optional: Function to extract platform and ID if needed elsewhere
 export function convertUrlToPlatformAndID(url) {
   const platformName = identifyPlatform(url);
-  if (!platformName) return { error: 'Platforma nieznana' };
+  if (!platformName) return { error: 'Unknown platform' };
 
   const itemID = extractItemID(url, middlemen['kakobuy'].itemIDPattern, 'kakobuy');
-  if (!itemID) return { error: 'Nie udało się znaleźć itemID' };
+  if (!itemID) return { error: 'Item ID not found' };
 
   return {
     platform: platformName.toUpperCase(),

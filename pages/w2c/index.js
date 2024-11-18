@@ -39,7 +39,6 @@ export default function W2C() {
     { value: "allchinabuy", label: "AllChinaBuy" },
     { value: "superbuy", label: "SuperBuy" },
     { value: "kakobuy", label: "KakoBuy" },
-    { value: "cssbuy", label: "CSSBuy" },
   ];
 
   const handleQCClick = (link) => {
@@ -162,7 +161,7 @@ export default function W2C() {
         />
       </div>
       <div className="flex flex-col md:flex-row items-start min-h-full pt-5 pb-20 mx-4">
-        <div className="w-full md:w-1/3 md:sticky md:top-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 rounded-xl shadow-lg mr-4 overflow-y-auto max-h-screen">
+        <div className="w-full md:w-1/3 md:sticky mb-4 md:top-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 p-6 rounded-xl shadow-lg mr-4 overflow-y-auto max-h-screen">
           <div className="flex flex-col space-y-6">
             <div>
               <label htmlFor="agent" className="block text-gray-300 font-medium mb-2">
