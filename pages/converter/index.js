@@ -1,3 +1,5 @@
+// components/Converter.js
+
 import FooterSection from "@/components/FooterSection";
 import FooterTwoSection from "@/components/FooterTwoSection";
 import NavbarSection from "@/components/NavbarSection";
@@ -17,10 +19,11 @@ export default function Converter() {
     allchinabuy: '🐉',
     cnfans: '🉐',
     kakobuy: '♨️',
-    basetao:'🅱️',
+    basetao: '🅱️',
     mulebuy: '💫',
     lovegobuy: '💚',
-    joyabuy:'🛒'
+    joyabuy: '🛒',
+    hoobuy: '🏠' // Dodane emoji dla hoobuy
   };
 
   const handleConvert = async () => {
@@ -42,6 +45,8 @@ export default function Converter() {
         { url },
         { headers: { 'Content-Type': 'application/json' } }
       );
+
+      console.log("API Response:", response.data); // Dodany log
 
       if (Object.keys(response.data).length === 0) {
         setErrorMessage('Nie znaleziono wyników dla podanego linku.');

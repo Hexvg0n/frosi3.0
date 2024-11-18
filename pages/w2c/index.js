@@ -3,6 +3,7 @@
 import FooterSection from "@/components/FooterSection";
 import FooterTwoSection from "@/components/FooterTwoSection";
 import NavbarSection from "@/components/NavbarSection";
+import Link from 'next/link';
 import axios from "axios";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/router";
@@ -39,6 +40,11 @@ export default function W2C() {
     { value: "allchinabuy", label: "AllChinaBuy" },
     { value: "superbuy", label: "SuperBuy" },
     { value: "kakobuy", label: "KakoBuy" },
+    {value: "cnfans", label: "CNFans" },
+    {value: "hoobuy", label: "HooBuy" },
+    {value: "mulebuy", label: "MuleBuy" },
+
+
   ];
 
   const handleQCClick = (link) => {
@@ -247,7 +253,7 @@ export default function W2C() {
                     </motion.button>
 
                   <motion.button
-                    onClick={() => handleQCClick(item.link)}
+                    onClick={() => handleQCClick(item.link, )}
                     className="w-full bg-gray-500 text-white px-4 py-2 rounded-lg transition-colors duration-300 hover:bg-gray-400 font-bold flex items-center justify-center"
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
