@@ -5,14 +5,14 @@ import Link from 'next/link';
 
 export default function BestSellersSection() {
     const bestsellers = [
-        { id: 1, title: "Air Jordan 4", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6656410659%26spider_token%3D5f60?partnercode=wf5ZpA", image: "/images/101.png" },
-        { id: 2, title: "Air Force 1", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fweidian.com%2Ffastorder.html%3FitemID%3D5303810327?partnercode=wf5ZpA", image: "/images/102.png" },
-        { id: 3, title: "Yeezy Slide", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6357399660%26spider_token%3D2f72?partnercode=wf5ZpA", image: "/images/103.png" },
-        { id: 4, title: "YZY X GAP X BALENCIAGA", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D683748985499?partnercode=wf5ZpA", image: "/images/104.png" },
-        { id: 5, title: "Air Jordan 1 Retro High Travis Scott OG Mocha", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6388553113%26spider_token%3D0452?partnercode=wf5ZpA", image: "/images/105.png" },
-        { id: 6, title: "Air Pods 2", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6516369527%26spider_token%3Dd6de?partnercode=wf5ZpA", image: "/images/106.png" },
-        { id: 7, title: "Rick Owens Rammones", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D741087802238?partnercode=wf5ZpA", image: "/images/107.png" },
-        { id: 8, title: "TNF Jacket", linkTo: "https://www.allchinabuy.com/en/page/buy/?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6503405541%26spider_token%3D5559?partnercode=wf5ZpA", image: "/images/108.png" },
+        { id: 1, title: "Air Jordan 4", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6656410659&affcode=frosireps", image: "/images/101.png" },
+        { id: 2, title: "Air Force 1", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D5303810327&affcode=frosireps", image: "/images/102.png" },
+        { id: 3, title: "Yeezy Slide", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6357399660&affcode=frosireps", image: "/images/103.png" },
+        { id: 4, title: "YZY X GAP X BALENCIAGA", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D683748985499&affcode=frosireps", image: "/images/104.png" },
+        { id: 5, title: "Air Jordan 1 Retro High Travis Scott OG Mocha", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6388553113&affcode=frosireps", image: "/images/105.png" },
+        { id: 6, title: "Air Pods 2", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6516369527&affcode=frosireps", image: "/images/106.png" },
+        { id: 7, title: "Rick Owens Rammones", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D741087802238&affcode=frosireps", image: "/images/107.png" },
+        { id: 8, title: "TNF Jacket", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6503405541&affcode=frosireps", image: "/images/108.png" },
     ];
     const router = useRouter(); // Inicjalizacja routera
 
