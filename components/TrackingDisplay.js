@@ -1,5 +1,5 @@
 // components/TrackingDisplay.js
-import React from 'react';
+import React from "react";
 
 const TrackingDisplay = ({ data }) => {
   return (
@@ -23,9 +23,15 @@ const TrackingDisplay = ({ data }) => {
         <div className="space-y-4">
           {data["Szczegóły przesyłki"].map((detail, index) => (
             <div key={index} className="bg-gray-600 p-3 rounded-lg">
-              <p className="text-sm text-gray-300"><strong>Data:</strong> {detail.Data}</p>
-              <p className="text-sm text-gray-300"><strong>Lokalizacja:</strong> {detail.Lokalizacja}</p>
-              <p className="text-sm text-gray-300"><strong>Status:</strong> {detail.Status}</p>
+              <p className="text-sm text-gray-300">
+                <strong>Data:</strong> {detail.Data}
+              </p>
+              <p className="text-sm text-gray-300">
+                <strong>Lokalizacja:</strong> {detail.Lokalizacja}
+              </p>
+              <p className="text-sm text-gray-300">
+                <strong>Status:</strong> {detail.Status}
+              </p>
             </div>
           ))}
         </div>

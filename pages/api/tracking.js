@@ -33,6 +33,59 @@ function translateStatus(status) {
   return STATUS_TRANSLATIONS[status] || status; // Zwróć oryginalny status, jeśli brak tłumaczenia
 }
 
+// Funkcja do wysyłania powiadomienia do Discorda
+async function sendDiscordNotification(documentCode, trackingData) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+
+  if (!webhookUrl) {
+    console.error('Webhook URL nie jest ustawiony.');
+    return;
+  }
+
+  const discordPayload = {
+    content: `Nowy numer śledzenia: **${documentCode}**`,
+    username: 'TrackingBot', // Opcjonalnie: zmień nazwę bota
+    avatar_url: 'https://yourdomain.com/path-to-avatar.png', // Opcjonalnie: dodaj avatar
+    embeds: [
+      {
+        title: "Informacje główne",
+        color: 0x00FF00, // Zielony kolor embeda
+        fields: Object.entries(trackingData["Informacje główne"]).map(([name, value]) => ({
+          name,
+          value: value.toString(),
+          inline: true
+        })),
+        footer: {
+          text: `Źródło: ${trackingData["Źródło"]}`
+        }
+      },
+      {
+        title: "Szczegóły przesyłki",
+        color: 0x0000FF, // Niebieski kolor embeda
+        fields: trackingData["Szczegóły przesyłki"].map((detail, index) => ({
+          name: `Aktualizacja ${index + 1}`,
+          value: `**Data:** ${detail.Data}\n**Lokalizacja:** ${detail.Lokalizacja}\n**Status:** ${detail.Status}`,
+          inline: false
+        }))
+      }
+    ]
+  };
+
+  try {
+    const response = await axios.post(webhookUrl, discordPayload, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.status.toString().startsWith('2')) {
+      console.error('Błąd przy wysyłaniu do Discorda:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Błąd przy wysyłaniu do Discorda:', error.message);
+  }
+}
+
 export default async function handler(req, res) {
   // Obsługa tylko metod POST
   if (req.method !== "POST") {
@@ -125,6 +178,10 @@ export default async function handler(req, res) {
               "Szczegóły przesyłki": traceDetails, 
               "Źródło": url 
             };
+
+            // Wysyłanie powiadomienia do Discorda
+            await sendDiscordNotification(documentCode, trackingData);
+
             break; // Zakończ iterację po znalezieniu danych
           } else {
             console.log(`Nie znaleziono numeru śledzenia na ${url}. Przechodzenie do następnego URL.`);
