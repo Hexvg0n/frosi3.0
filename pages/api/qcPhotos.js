@@ -42,10 +42,14 @@ export default async function handler(req, res) {
 
     // Przetwarzanie danych grup
     const groupsData = data.map(item => {
-      // Zakładamy, że każdy `item` reprezentuje wariant i zawiera `qcPhotos`
       const variant = item.variant || "Default Variant";
       const photos = item.qcPhotos 
-        ? item.qcPhotos.map(photo => `${req.headers.origin}/api/proxy?url=${encodeURIComponent(photo.photoUrl)}`)
+        ? item.qcPhotos.map(photo => {
+            if (!photo.photoUrl) return null;
+            // Tworzenie URL do proxy z oryginalnym URL obrazu jako parametr
+            const imageProxyUrl = `${req.headers.origin}/api/proxy?url=${encodeURIComponent(photo.photoUrl)}`;
+            return imageProxyUrl;
+          }).filter(url => url !== null)
         : [];
       return { variant, photos };
     });

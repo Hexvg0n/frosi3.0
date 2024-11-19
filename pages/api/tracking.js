@@ -1,6 +1,12 @@
 // pages/api/tracking.js
 import axios from "axios";
 import * as cheerio from "cheerio";
+import validator from 'validator';
+import fs from 'fs/promises';
+import path from 'path';
+
+// Ścieżka do pliku cache tłumaczeń
+const TRANSLATION_CACHE_PATH = path.join(process.cwd(), 'translations.json');
 
 // Lista URL-i do sprawdzenia, z najprawdopodobniejszym URL-em na początku
 const TRACKING_URLS = [
@@ -13,24 +19,85 @@ const TRACKING_URLS = [
   "http://www.gdasgyl.com:8082/en/trackIndex.htm"
 ];
 
-// Mapa tłumaczeń statusów z angielskiego na polski
-const STATUS_TRANSLATIONS = {
-  "In Transit": "W tranzycie",
-  "Delivered": "Dostarczono",
-  "Out for Delivery": "W drodze do dostawy",
-  "Exception": "Wyjątek",
-  "Info Received": "Odebrano informacje",
-  "Shipment Processed": "Przesyłka przetworzona",
-  "At Local Facility": "W lokalnym centrum",
-  "Customs Clearance": "Odprawa celna",
-  "Delayed": "Opóźniono",
-  "Returned to Sender": "Zwrócono nadawcy",
-  // Dodaj więcej statusów w zależności od potrzeb
+// Mapa normalizacji etykiet
+const LABEL_NORMALIZATION = {
+  "trackingNumber": ["trackingNumber", "Numer śledzenia", "跟踪号码", "رقم التتبع", "Tracking Number"],
+  "referenceNo": ["reference No.", "Numer referencyjny", "参考编号", "رقم المرجع", "Reference Number"],
+  "country": ["country", "Kraj", "国家", "البلد", "Country"],
+  "date": ["date", "Data", "日期", "التاريخ", "Date"],
+  "theLastRecord": ["the last record", "Ostatni status", "最后记录", "آخر سجل", "Last Record"],
+  "consigneeName": ["consigneeName", "Odbiorca", "收货人姓名", "اسم المستلم", "Consignee Name"],
+  // Dodaj więcej etykiet w zależności od potrzeb
 };
 
-// Funkcja do tłumaczenia statusów
-function translateStatus(status) {
-  return STATUS_TRANSLATIONS[status] || status; // Zwróć oryginalny status, jeśli brak tłumaczenia
+// Funkcja do normalizacji etykiet
+function normalizeLabel(label) {
+  for (const [key, variants] of Object.entries(LABEL_NORMALIZATION)) {
+    if (variants.includes(label)) {
+      return key;
+    }
+  }
+  return label; // Zwróć oryginalny label, jeśli nie znaleziono normalizacji
+}
+
+// Funkcja do wczytywania cache tłumaczeń
+async function loadTranslationCache() {
+  try {
+    const data = await fs.readFile(TRANSLATION_CACHE_PATH, 'utf-8');
+    return JSON.parse(data);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      // Plik nie istnieje, utwórz pusty cache
+      await fs.writeFile(TRANSLATION_CACHE_PATH, JSON.stringify({}), 'utf-8');
+      return {};
+    } else {
+      console.error('Błąd podczas wczytywania cache tłumaczeń:', error.message);
+      return {};
+    }
+  }
+}
+
+// Funkcja do zapisywania cache tłumaczeń
+async function saveTranslationCache(cache) {
+  try {
+    await fs.writeFile(TRANSLATION_CACHE_PATH, JSON.stringify(cache, null, 2), 'utf-8');
+  } catch (error) {
+    console.error('Błąd podczas zapisywania cache tłumaczeń:', error.message);
+  }
+}
+
+// Funkcja do tłumaczenia statusów z cache i API DeepL
+async function translateStatus(status, cache) {
+  if (cache[status]) {
+    return cache[status];
+  }
+
+  const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
+
+  if (!DEEPL_API_KEY) {
+    console.error('DEEPL_API_KEY nie jest ustawiony.');
+    return status; // Zwróć oryginalny status w przypadku braku klucza API
+  }
+
+  try {
+    const response = await axios.post('https://api-free.deepl.com/v2/translate', new URLSearchParams({
+      auth_key: DEEPL_API_KEY,
+      text: status,
+      target_lang: 'PL'
+    }), {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+
+    const translated = response.data.translations[0].text;
+    cache[status] = translated;
+    await saveTranslationCache(cache);
+    return translated;
+  } catch (error) {
+    console.error('Błąd tłumaczenia statusu:', error.response?.data || error.message);
+    return status; // Zwróć oryginalny status w przypadku błędu
+  }
 }
 
 // Funkcja do wysyłania powiadomienia do Discorda
@@ -44,12 +111,12 @@ async function sendDiscordNotification(documentCode, trackingData) {
 
   const discordPayload = {
     content: `Nowy numer śledzenia: **${documentCode}**`,
-    username: 'TrackingBot', // Opcjonalnie: zmień nazwę bota
-    avatar_url: 'https://yourdomain.com/path-to-avatar.png', // Opcjonalnie: dodaj avatar
+    username: 'TrackingBot',
+    avatar_url: 'https://yourdomain.com/path-to-avatar.png', // Opcjonalnie: zmień na własny URL avatar
     embeds: [
       {
         title: "Informacje główne",
-        color: 0x00FF00, // Zielony kolor embeda
+        color: 0x00FF00,
         fields: Object.entries(trackingData["Informacje główne"]).map(([name, value]) => ({
           name,
           value: value.toString(),
@@ -61,7 +128,7 @@ async function sendDiscordNotification(documentCode, trackingData) {
       },
       {
         title: "Szczegóły przesyłki",
-        color: 0x0000FF, // Niebieski kolor embeda
+        color: 0x0000FF,
         fields: trackingData["Szczegóły przesyłki"].map((detail, index) => ({
           name: `Aktualizacja ${index + 1}`,
           value: `**Data:** ${detail.Data}\n**Lokalizacja:** ${detail.Lokalizacja}\n**Status:** ${detail.Status}`,
@@ -94,13 +161,16 @@ export default async function handler(req, res) {
 
   const { documentCode } = req.body;
 
-  // Sprawdzenie czy documentCode jest dostarczony
-  if (!documentCode) {
-    return res.status(400).json({ error: "documentCode is required" });
+  // Sprawdzenie czy documentCode jest dostarczony i jest alfanumeryczny
+  if (!documentCode || !validator.isAlphanumeric(documentCode)) {
+    return res.status(400).json({ error: "Invalid or missing documentCode" });
   }
 
   try {
     let trackingData = null;
+
+    // Wczytaj cache tłumaczeń
+    const translationCache = await loadTranslationCache();
 
     // Iteracja przez każdy URL sekwencyjnie
     for (const url of TRACKING_URLS) {
@@ -134,11 +204,17 @@ export default async function handler(req, res) {
             values.push(value);
           });
 
-          // Mapowanie etykiet na wartości
+          // Mapowanie etykiet na wartości z normalizacją
           const dataMap = {};
           labels.forEach((label, index) => {
-            dataMap[label] = values[index] || "";
+            const normalizedLabel = normalizeLabel(label);
+            dataMap[normalizedLabel] = values[index] || "";
           });
+
+          // Logowanie dla diagnozy
+          console.log('Parsed Labels:', labels);
+          console.log('Parsed Values:', values);
+          console.log('Data Map:', dataMap);
 
           // Sprawdzenie, czy numer śledzenia jest obecny
           const trackingNumber = dataMap["trackingNumber"];
@@ -147,11 +223,11 @@ export default async function handler(req, res) {
           if (trackingNumber && trackingNumber !== "") {
             // Tworzenie głównych informacji z polskimi kluczami
             const mainInfo = {
-              "Numer referencyjny": dataMap["reference No."] || "N/A",
+              "Numer referencyjny": dataMap["referenceNo"] || "N/A",
               "Numer śledzenia": dataMap["trackingNumber"] || "N/A",
               "Kraj": dataMap["country"] || "N/A",
               "Data": dataMap["date"] || "N/A",
-              "Ostatni status": translateStatus(dataMap["the last record"] || "N/A"),
+              "Ostatni status": await translateStatus(dataMap["theLastRecord"] || "N/A", translationCache),
               "Odbiorca": dataMap["consigneeName"] || "N/A",
             };
 
@@ -162,20 +238,26 @@ export default async function handler(req, res) {
             $("table tr").each((_, row) => {
               const cells = $(row).find("td");
               if (cells.length === 3) {
-                const detail = {
+                traceDetails.push({
                   "Data": $(cells[0]).text().trim(),
                   "Lokalizacja": $(cells[1]).text().trim(),
-                  "Status": translateStatus($(cells[2]).text().trim()),
-                };
-                traceDetails.push(detail);
+                  "Status": $(cells[2]).text().trim(),
+                });
               }
             });
 
             console.log(`Szczegóły śledzenia znalezione na ${url}:`, traceDetails);
 
+            // Tłumaczenie szczegółów śledzenia
+            const translatedDetails = await Promise.all(traceDetails.map(async (detail) => ({
+              "Data": detail.Data,
+              "Lokalizacja": detail.Lokalizacja,
+              "Status": await translateStatus(detail.Status, translationCache),
+            })));
+
             trackingData = { 
               "Informacje główne": mainInfo, 
-              "Szczegóły przesyłki": traceDetails, 
+              "Szczegóły przesyłki": translatedDetails, 
               "Źródło": url 
             };
 
