@@ -19,7 +19,7 @@ const platforms = {
   weidian: { 
     regex: /(?:https?:\/\/)?(?:www\.)?weidian\.com/, 
     urlPattern: "https://weidian.com/item.html?itemID={{itemID}}",
-    itemIDPattern: [/itemID=(\d+)/]
+    itemIDPattern: [/itemID=(\d+)/, /itemI[dD]=(\d+)/] // Dodano
   },
 };
 
@@ -45,14 +45,14 @@ const middlemen = {
     template: "https://www.kakobuy.com/item/details?url={{encodedUrl}}&affcode=frosireps",
     aliases: ["allchinabuy"],
     platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
-    itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
+    itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: true
   },
   superbuy: {
     template: "https://www.superbuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=EEr5wI",
     aliases: ["allchinabuy"],
     platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
-    itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
+    itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: true
   },
   cssbuy: {
@@ -67,14 +67,15 @@ const middlemen = {
       /id=(\d+)/, 
       /\/offer\/(\d+)\.html/, 
       /itemID=(\d+)/,
-      /item-(taobao|1688|micro|tmall)-(\d+)\.html$/ // Zaktualizowany wzorzec
+      /item-(taobao|1688|micro|tmall)-(\d+)\.html$/,
+      /itemI[dD]=(\d+)/ // Dodano
     ],
     requiresDecoding: false
   },
   allchinabuy: {
     template: "https://www.allchinabuy.com/en/page/buy/?url={{encodedUrl}}&partnercode=wf5ZpA",
     platformMapping: { taobao: "item.taobao.com", "1688": "detail.1688.com", weidian: "weidian.com", tmall: "detail.tmall.com" },
-    itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/],
+    itemIDPattern: [/id=(\d+)/, /\/offer\/(\d+)\.html/, /itemID=(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: true
   },
   basetao: {
@@ -88,32 +89,33 @@ const middlemen = {
     itemIDPattern: [
       /agent\/(?:taobao|tmall|1688|weidian)\/(\d+)\.html/,  
       /itemID=(\d+)/,                                      
-      /id=(\d+)/                                           
+      /id=(\d+)/,                                           
+      /itemI[dD]=(\d+)/ // Dodano
     ],
     requiresDecoding: false
   },
   lovegobuy: {
     template: "https://www.lovegobuy.com/product?id={{itemID}}&shop_type={{platformDomain}}&invite_code=AF8PNG",
     platformMapping: { taobao: "taobao", "1688": "1688", weidian: "weidian" },
-    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
+    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: false
   },
   cnfans: {
     template: "https://cnfans.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=234625",
     platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
-    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
+    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: false
   },
   joyabuy: {
     template: "https://joyabuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}",
     platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
-    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
+    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: false
   },
   mulebuy: {
     template: "https://mulebuy.com/product/?shop_type={{platformDomain}}&id={{itemID}}&ref=200216970",
     platformMapping: { taobao: "taobao", "1688": "ali_1688", weidian: "weidian" },
-    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/],
+    itemIDPattern: [/id=(\d+)/, /itemID=(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: false
   },
   hoobuy: {
@@ -124,7 +126,7 @@ const middlemen = {
       '1': 'item.taobao.com', 
       '2': 'weidian.com' 
     },
-    itemIDPattern: [/product\/(\d+)\/(\d+)/], // Captures platformCode and itemID
+    itemIDPattern: [/product\/(\d+)\/(\d+)/, /itemI[dD]=(\d+)/], // Dodano
     requiresDecoding: false
   },
 };
