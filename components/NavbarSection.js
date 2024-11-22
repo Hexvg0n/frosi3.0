@@ -54,7 +54,7 @@ export default function NavbarSection() {
             <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
           </button>
           <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/converter">LINK CONVERTER</a>
+            <a href="/converter">CONVERTER</a>
             <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
           </button>
           {/* <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">

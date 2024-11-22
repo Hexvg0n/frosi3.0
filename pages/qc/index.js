@@ -7,6 +7,8 @@ import FooterSection from "@/components/FooterSection";
 import FooterTwoSection from "@/components/FooterTwoSection";
 import QCPhotos from "@/components/QCPhotos";
 import axios from "axios";
+import { motion } from "framer-motion";
+import { Search } from "lucide-react";
 
 export default function QCPage() {
   const router = useRouter();
@@ -17,7 +19,7 @@ export default function QCPage() {
   const [showPhotos, setShowPhotos] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Paginacja
   const [currentPage, setCurrentPage] = useState(1);
   const groupsPerPage = 6; // Liczba grup na stronę
@@ -94,31 +96,39 @@ export default function QCPage() {
       <NavbarSection />
       <div className="flex flex-col items-center justify-start min-h-full pt-20 pb-20 px-4">
         {/* Formularz wyszukiwania */}
-        <div className="flex items-center w-full max-w-md shadow-lg border border-gray-300 bg-gray-800 bg-opacity-60 rounded-lg p-5">
+        <div className="flex items-center w-full max-w-md shadow-lg border border-gray-700 bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 rounded-lg">
+          <div className="p-3">
+            <Search className="text-gray-500" size={24} />
+          </div>
           <input
             type="text"
             placeholder="Wprowadź link do produktu"
             value={link}
             onChange={handleInputChange}
-            className="flex-grow p-3 bg-gray-700 bg-opacity-70 text-gray-300 rounded-l-lg"
+            className="flex-grow p-3 bg-transparent text-gray-300 focus:outline-none"
             disabled={url ? true : false}
           />
           <button
             onClick={handleSearchClick}
-            className="p-3 bg-gray-600 bg-opacity-70 text-gray-300 font-semibold rounded-r-lg hover:bg-gray-500 transition-all duration-300"
+            className="p-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-r-lg transition-all duration-300"
           >
             Szukaj
           </button>
         </div>
 
         {/* Wyświetlanie błędów */}
-        {error && <div className="text-red-500 mt-4">{error}</div>}
+        {error && (
+          <div className="mt-4 p-4 bg-red-600 border-2 border-red-800 text-white font-semibold rounded-lg shadow-lg">
+            {error}
+          </div>
+        )}
 
         {/* Spinner ładowania */}
         {isLoading && (
-          <div className="mt-4">
-            <p className="text-gray-300">Ładowanie zdjęć...</p>
-            {/* Możesz dodać tutaj spinner */}
+          <div className="mt-4 flex flex-col items-center">
+            {/* Spinner */}
+            <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16"></div>
+            <p className="text-gray-300 mt-4">Ładowanie zdjęć...</p>
           </div>
         )}
 
@@ -128,11 +138,17 @@ export default function QCPage() {
             {/* Układ Grid: wyświetlanie grup obok siebie */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-10">
               {currentGroups.map((group, index) => (
-                <QCPhotos 
-                  key={index} 
-                  photos={group.photos} 
-                  groupIndex={indexOfFirstGroup + index + 1} 
-                />
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <QCPhotos
+                    photos={group.photos}
+                    groupIndex={indexOfFirstGroup + index + 1}
+                  />
+                </motion.div>
               ))}
             </div>
 
@@ -141,11 +157,11 @@ export default function QCPage() {
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
-                className={`px-4 py-2 bg-gray-600 text-gray-300 rounded-lg ${
+                className={`px-4 py-2 ${
                   currentPage === 1
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-500"
-                }`}
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-500"
+                } text-white rounded-lg transition-all duration-300`}
               >
                 Poprzednia
               </button>
@@ -155,11 +171,11 @@ export default function QCPage() {
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className={`px-4 py-2 bg-gray-600 text-gray-300 rounded-lg ${
+                className={`px-4 py-2 ${
                   currentPage === totalPages
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-500"
-                }`}
+                    ? "bg-gray-500 cursor-not-allowed"
+                    : "bg-indigo-600 hover:bg-indigo-500"
+                } text-white rounded-lg transition-all duration-300`}
               >
                 Następna
               </button>
