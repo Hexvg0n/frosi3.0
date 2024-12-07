@@ -51,16 +51,7 @@ export default function AboutSection() {
           variants={sectionVariants}
         >
           {/* Using Next.js Image for Optimization (Optional) */}
-          {/*
-          <Image
-            src="/images/about.png"
-            alt="Frosi aka Rudy"
-            layout="responsive"
-            width={500}
-            height={500}
-            className="w-full h-auto rounded-lg shadow-lg transition-transform duration-500 ease-in-out transform group-hover:scale-105"
-          />
-          */}
+
           
           {/* If not using Next.js Image, use standard img tag */}
           <img
