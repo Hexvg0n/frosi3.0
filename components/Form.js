@@ -92,7 +92,7 @@ const Form = () => {
   };
 
   const sendToDiscord = async (imageUrl) => {
-    const webhookUrl = 'https://discord.com/api/webhooks/1314887946561912922/voGc_4a54q6jLFYvECZ2X1ttLLv9tLDPZbb6ANrDv6zGqQH0X4NsCwUpLqsuH0gpgulh';
+    const webhookUrl = '';
 
     const imageBlob = await fetch(imageUrl).then((res) => res.blob());
     const formData = new FormData();
