@@ -109,17 +109,17 @@ const Form = () => {
   return (
     <div className='my-44 relative'>
       {/* Obrazek Mikołaja */}
-      <div className="absolute top-[-60px] left-1/2 transform -translate-x-1/2 z-40 md:top-[-150px]">
+      <div className="absolute top-[-70px] md:left-[46%] left-1/2 transform -translate-x-1/2 z-40 md:top-[-115px]">
   <img 
     src="images/mikolaj.png" 
     alt="Święty Mikołaj" 
-    className="w-[350px]" 
+    className="w-[200px] md:w-[350px]" 
   />
 </div>
       {/* Formularz */}
       <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 rounded-lg shadow-lg w-full max-w-lg mx-auto relative z-20">
         <div>
-          <label htmlFor="title" className="block text-xl font-semibold text-white font-[Dancing Script] italic text-center">Nick na discordzie</label>
+          <label htmlFor="title" className="block text-xl font-semibold text-white font-[Dancing Script] italic text-center ">Nick na discordzie</label>
           <input
             type="text"
             id="name"
