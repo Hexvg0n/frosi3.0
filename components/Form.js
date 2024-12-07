@@ -1,3 +1,5 @@
+// Frontend: Form.js (komponent React)
+
 import { useState, useRef, useEffect } from 'react';
 
 const Form = () => {
@@ -20,13 +22,13 @@ const Form = () => {
     e.preventDefault();
     
     if (messageCount >= MAX_MESSAGES) {
-      alert('Osiągnąłeś maksymalną liczbę wysłanych wiadomości!');
+      alert('Osignąłeś maksymalną liczbę wysłanych wiadomości!');
       return;
     }
 
     setIsSubmitting(true);
     const imageUrl = await addTextToImage(content);
-    const success = await sendToDiscord(imageUrl);
+    const success = await sendToBackend(imageUrl);
 
     if (success) {
       setIsSubmitted(true);
@@ -91,22 +93,22 @@ const Form = () => {
     return lines;
   };
 
-  const sendToDiscord = async (imageUrl) => {
-    const webhookUrl = '';
+  const sendToBackend = async (imageUrl) => {
+    const response = await fetch('/api/send-to-discord', {  // Next.js API Route
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: title,
+        imageUrl: imageUrl,
+      }),
+    });
 
-    const imageBlob = await fetch(imageUrl).then((res) => res.blob());
-    const formData = new FormData();
-    formData.append('file', imageBlob, 'image.jpg');
-    formData.append('content', title);
-
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        body: formData,
-      });
+    if (response.ok) {
       return true;
-    } catch (error) {
-      console.error('Błąd podczas wysyłania obrazu do Discorda:', error);
+    } else {
+      console.error('Błąd podczas wysyłania do backendu');
       return false;
     }
   };
