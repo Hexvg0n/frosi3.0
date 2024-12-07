@@ -126,7 +126,7 @@ const Form = () => {
   return (
     <div className='my-44 relative'>
       {/* Obrazek Mikołaja */}
-      <div className="absolute top-[-70px] md:left-[46%] left-1/2 transform -translate-x-1/2 z-40 md:top-[-115px]">
+      <div className="absolute top-[-70px] md:left-[46%] left-1/2 transform -translate-x-1/2 z-30 md:top-[-115px]">
         <img 
           src="images/mikolaj.png" 
           alt="Święty Mikołaj" 

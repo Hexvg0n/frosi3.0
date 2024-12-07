@@ -38,14 +38,14 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh; /* Dostosowanie wysokości do pełnej wysokości ekranu */
   pointer-events: none; /* Aby nie blokować interakcji z innymi elementami */
   z-index: 10; /* Ustawiamy wyższy z-index, aby płatki były na wierzchu */
 }
 
 /* Stylowanie dla pojedynczego płatka śniegu */
 .snowflake {
-  top: -10px;
+  top: -20px; /* Ustawienie początku animacji */
   position: absolute;
   background-color: white;
   border-radius: 50%;
@@ -54,8 +54,11 @@ body {
 }
 
 @keyframes snow {
+  from {
+    transform: translateY(-10vh) translateX(0); /* Początkowa pozycja nad ekranem */
+  }
   to {
-    transform: translateY(100vh) translateX(-10vw); /* Opadanie w dół i lekki ruch w lewo */
+    transform: translateY(110vh) translateX(-10vw); /* Opadanie na pełną wysokość ekranu */
   }
 }
 
@@ -66,6 +69,6 @@ body {
   }
 
   .snowflake {
-    animation-duration: 10s; /* Można zmienić czas trwania animacji dla mniejszych ekranów */
+    animation-duration: 15s; /* Można zmienić czas trwania animacji dla mniejszych ekranów, aby spadały wolniej */
   }
 }
