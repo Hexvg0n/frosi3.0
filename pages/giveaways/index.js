@@ -9,7 +9,7 @@ export default function Giveaway() {
 
   const generateSnowflakes = () => {
     const snowflakes = [];
-    const numOfSnowflakes = 200; // zwiększona liczba płatków śniegu
+    const numOfSnowflakes = 200; // liczba płatków śniegu
 
     for (let i = 0; i < numOfSnowflakes; i++) {
       const size = Math.random() * 5 + 2; // losowy rozmiar płatka
@@ -101,12 +101,12 @@ export default function Giveaway() {
             <ul className="list-inside list-disc pl-5">
               <li><b>{language === 'pl' ? 'Jak wybieramy zwycięzców? 🎉' : 'How do we select the winners? 🎉'}</b>
                 <ul className="list-inside list-disc pl-5">
-                <li>
-  {language === 'pl' 
-    ? 'Trzech zwycięzców zostanie wybranych losowo na kanale ' 
-    : 'Three winners will be randomly drawn on the channel '}
-  <a href="https://discord.gg/wb2rWRNQ" className="text-blue-500 hover:text-blue-700">#🎄・konkursy</a> 🎲.
-</li>
+                  <li>
+                    {language === 'pl' 
+                      ? 'Trzech zwycięzców zostanie wybranych losowo na kanale ' 
+                      : 'Three winners will be randomly drawn on the channel '}
+                    <a href="https://discord.gg/wb2rWRNQ" className="text-blue-500 hover:text-blue-700">#🎄・konkursy</a> 🎲.
+                  </li>
                   <li>{language === 'pl' ? 'Dodatkowo dwóch zwycięzców zostanie wybranych na podstawie kreatywności ich listów 🏆.' : 'Two additional winners will be selected based on the creativity of their letters 🏆.'}</li>
                 </ul>
               </li>
