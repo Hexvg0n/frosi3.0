@@ -3,13 +3,18 @@ import { useState, useRef } from 'react';
 const Form = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false); // Stan do przechowywania informacji o wysłaniu
   const canvasRef = useRef(null); // Referencja do canvas
   const MAX_CHARACTERS = 1150; // Maksymalna liczba znaków
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const imageUrl = await addTextToImage(content);
-    sendToDiscord(imageUrl); // Wysyłanie obrazu do Discorda
+    const success = await sendToDiscord(imageUrl);
+    
+    if (success) {
+      setIsSubmitted(true); // Ustawienie stanu na true, jeśli wysyłka zakończona powodzeniem
+    }
   };
 
   // Funkcja, która dodaje tekst na obrazie w canvas
@@ -88,17 +93,21 @@ const Form = () => {
         method: 'POST',
         body: formData,
       });
+      return true;  // Zwróć true, jeśli wysyłka zakończyła się powodzeniem
     } catch (error) {
       console.error('Błąd podczas wysyłania obrazu do Discorda:', error);
+      return false;  // Zwróć false w przypadku błędu
     }
   };
 
   return (
-    <div className='my-16'>
-      <div className="absolute md:top-[105px] top-[85px] left-1/2 transform -translate-x-2/3 z-10">
-        <img src="images/mikolaj.png" alt="Święty Mikołaj" className="w-80 h-auto" />
+    <div className='my-44 relative'>
+      {/* Obrazek Mikołaja */}
+      <div className="absolute md:top-[-115px] top-[-95px] left-1/2 transform -translate-x-1/2 z-40">
+        <img src="images/mikolaj.png" alt="Święty Mikołaj" className="w-3/4 max-w-md h-auto" />
       </div>
-      <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 rounded-lg shadow-lg max-w-lg mx-auto">
+      {/* Formularz */}
+      <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 rounded-lg shadow-lg w-full max-w-lg mx-auto relative z-20">
         <div>
           <label htmlFor="title" className="block text-xl font-semibold text-white font-[Dancing Script] italic text-center">Nick na discordzie</label>
           <input
@@ -137,6 +146,13 @@ const Form = () => {
         </div>
       </form>
 
+      {/* Komunikat o wysłaniu */}
+      {isSubmitted && (
+        <div className="mt-6 text-center text-xl text-green-500">
+          Twój list został pomyślnie wysłany! 🎅
+        </div>
+      )}
+  
       {/* Ukryty canvas */}
       <canvas ref={canvasRef} width={1000} height={1414} style={{ display: 'none' }}>
         Your browser does not support the canvas element.
