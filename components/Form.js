@@ -4,17 +4,23 @@ const Form = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false); // Stan do przechowywania informacji o wysłaniu
+  const [isSubmitting, setIsSubmitting] = useState(false); // Stan do blokowania przycisku podczas wysyłania
   const canvasRef = useRef(null); // Referencja do canvas
   const MAX_CHARACTERS = 1150; // Maksymalna liczba znaków
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true); // Blokujemy przycisk
     const imageUrl = await addTextToImage(content);
     const success = await sendToDiscord(imageUrl);
     
     if (success) {
       setIsSubmitted(true); // Ustawienie stanu na true, jeśli wysyłka zakończona powodzeniem
+      // Resetujemy formularz
+      setTitle('');
+      setContent('');
     }
+    setIsSubmitting(false); // Odblokowanie przycisku po zakończeniu wysyłania
   };
 
   // Funkcja, która dodaje tekst na obrazie w canvas
@@ -103,9 +109,13 @@ const Form = () => {
   return (
     <div className='my-44 relative'>
       {/* Obrazek Mikołaja */}
-      <div className="absolute md:top-[-115px] top-[-95px] left-1/2 transform -translate-x-1/2 z-40">
-        <img src="images/mikolaj.png" alt="Święty Mikołaj" className="w-3/4 max-w-md h-auto" />
-      </div>
+      <div className="absolute top-[-60px] left-1/2 transform -translate-x-1/2 z-40 md:top-[-150px]">
+  <img 
+    src="images/mikolaj.png" 
+    alt="Święty Mikołaj" 
+    className="w-[350px]" 
+  />
+</div>
       {/* Formularz */}
       <form onSubmit={handleSubmit} className="space-y-6 p-8 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 rounded-lg shadow-lg w-full max-w-lg mx-auto relative z-20">
         <div>
@@ -117,6 +127,7 @@ const Form = () => {
             onChange={(e) => setTitle(e.target.value)}
             required
             className="mt-2 p-4 w-full bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isSubmitting} // Zablokowanie pola tekstowego przy wysyłaniu
           />
         </div>
         <div>
@@ -131,6 +142,7 @@ const Form = () => {
             }}
             required
             className="mt-2 p-4 w-full bg-gray-700 text-white border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-40"
+            disabled={isSubmitting} // Zablokowanie pola tekstowego przy wysyłaniu
           />
           <div className="text-sm text-gray-400 mt-2">
             {content.length}/{MAX_CHARACTERS} znaków
@@ -140,6 +152,7 @@ const Form = () => {
           <button
             type="submit"
             className="w-full py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            disabled={isSubmitting} // Zablokowanie przycisku przy wysyłaniu
           >
             Wyślij
           </button>
