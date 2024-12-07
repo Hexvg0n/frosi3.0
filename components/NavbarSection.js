@@ -63,7 +63,7 @@ export default function NavbarSection() {
             <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
           </button>
           <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/giveaways">🎄Konkursy</a>
+            <a href="/giveaways">🎄Giveaways</a>
             <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
           </button> 
           <button className="text-blue-500 hover:shadow-lg transition-all duration-300 border border-blue-500 rounded-lg px-6 py-2 lg:px-4 lg:py-2 hover:bg-blue-500 hover:text-white font-bold">
