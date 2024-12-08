@@ -98,13 +98,14 @@ const Form = () => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_DISCORD_SECRET_KEY}`, // Dodanie nagłówka Authorization
       },
       body: JSON.stringify({
         title: title,
         imageUrl: imageUrl,
       }),
     });
-
+  
     if (response.ok) {
       return true;
     } else {
@@ -112,6 +113,7 @@ const Form = () => {
       return false;
     }
   };
+  
 
   const getMessageCountFromCookies = () => {
     const cookies = document.cookie.split('; ');
