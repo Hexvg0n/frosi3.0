@@ -11,6 +11,16 @@ import crypto from "crypto";
 const httpAgent = new Agent({ keepAlive: true });
 const httpsAgent = new HttpsAgent({ keepAlive: true });
 
+// Maksymalny rozmiar pliku w bajtach (np. 5MB)
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+// Dopuszczalne hosty/domeny
+const ALLOWED_HOSTS = [
+  "finds.ly",
+  "cdn.finds.ly", // Dodane: cdn.finds.ly
+  // Dodaj inne zaufane domeny tutaj
+];
+
 const axiosInstance = axios.create({
   httpAgent,
   httpsAgent,
@@ -60,10 +70,16 @@ export default async function handler(req, res) {
     const decodedUrl = decodeURIComponent(url);
     console.log("Przetwarzanie obrazu przez proxy z URL:", decodedUrl);
 
+    // Sprawdź czy URL jest dozwolony
+    const urlObj = new URL(decodedUrl);
+    if (!ALLOWED_HOSTS.includes(urlObj.host)) {
+      console.warn(`Host ${urlObj.host} nie jest dozwolony.`);
+      return res.status(403).json({ error: "Niedozwolone źródło obrazu." });
+    }
+
     const baseFileName = generateFileName(decodedUrl);
     const webpFileName = `${baseFileName}.webp`;
     const webpFilePath = path.join(imagesDir, webpFileName);
-    const urlObj = new URL(decodedUrl);
     const originalExtension = path.extname(urlObj.pathname) || '.jpg';
     const originalFileName = `${baseFileName}${originalExtension}`;
     const originalFilePath = path.join(imagesDir, originalFileName);
@@ -97,14 +113,31 @@ export default async function handler(req, res) {
       return;
     }
 
-    // Pobierz obraz jako buffer
+    // Pobierz obraz, ale z ograniczeniami
     const response = await axiosInstance.get(decodedUrl, {
       responseType: "arraybuffer",
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
       },
+      // Wprowadzenie maksymalnego rozmiaru
+      maxContentLength: MAX_FILE_SIZE,
+      // Opcjonalnie można wymusić maxBodyLength:
+      maxBodyLength: MAX_FILE_SIZE
     });
+
+    // Sprawdź Content-Type
+    const contentTypeHeader = response.headers['content-type'];
+    if (!contentTypeHeader || !contentTypeHeader.startsWith('image/')) {
+      console.error("Pobrany plik nie jest obrazem lub brak Content-Type.");
+      return res.status(400).json({ error: "Pobrany zasób nie jest obrazem." });
+    }
+
+    const contentLength = parseInt(response.headers['content-length'], 10);
+    if (contentLength && contentLength > MAX_FILE_SIZE) {
+      console.error(`Plik jest za duży: ${contentLength} bajtów.`);
+      return res.status(413).json({ error: "Zbyt duży rozmiar pliku." });
+    }
 
     const imageBuffer = Buffer.from(response.data, 'binary');
 
@@ -128,18 +161,24 @@ export default async function handler(req, res) {
     } catch (conversionError) {
       console.error(`Błąd podczas konwertowania obrazu do WebP: ${decodedUrl}`, conversionError.message);
 
-      fs.writeFileSync(originalFilePath, imageBuffer);
-      console.log(`Oryginalny obraz zapisany: ${originalFilePath}`);
+      // Zapisz oryginał tylko jeśli jest mały i poprawny
+      if (contentLength && contentLength <= MAX_FILE_SIZE) {
+        fs.writeFileSync(originalFilePath, imageBuffer);
+        console.log(`Oryginalny obraz zapisany: ${originalFilePath}`);
 
-      const contentType = getContentTypeFromExtension(originalExtension);
-      res.setHeader("Content-Type", contentType || "image/jpeg");
-      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-      const readStream = fs.createReadStream(originalFilePath);
-      readStream.pipe(res);
-      readStream.on('error', (err) => {
-        console.error("Błąd podczas czytania oryginalnego pliku:", err.message);
-        res.status(500).json({ error: "Błąd podczas serwowania obrazu." });
-      });
+        const contentType = getContentTypeFromExtension(originalExtension);
+        res.setHeader("Content-Type", contentType || "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        const readStream = fs.createReadStream(originalFilePath);
+        readStream.pipe(res);
+        readStream.on('error', (err) => {
+          console.error("Błąd podczas czytania oryginalnego pliku:", err.message);
+          res.status(500).json({ error: "Błąd podczas serwowania obrazu." });
+        });
+      } else {
+        // Jeżeli konwersja się nie udała i nie chcemy zachować oryginału
+        res.status(500).json({ error: "Błąd podczas przetwarzania obrazu." });
+      }
     }
   } catch (error) {
     console.error("Błąd podczas przetwarzania obrazu przez proxy:", error.message);
@@ -150,6 +189,11 @@ export default async function handler(req, res) {
         error.response.data
       );
     }
+    // Jeżeli axios rzucił błąd z powodu przekroczenia rozmiaru:
+    if (error.message && (error.message.includes('maxContentLength') || error.message.includes('maxBodyLength'))) {
+      return res.status(413).json({ error: "Plik jest zbyt duży." });
+    }
+
     res.status(500).json({ error: "Nie udało się przetworzyć obrazu." });
   }
 }
