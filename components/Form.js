@@ -1,7 +1,6 @@
 // Frontend: Form.js (komponent React)
 
 import { useState, useRef, useEffect } from 'react';
-import ReCAPTCHA from 'react-google-recaptcha';
 
 const Form = () => {
   const [title, setTitle] = useState('');
@@ -9,7 +8,6 @@ const Form = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [messageCount, setMessageCount] = useState(0);  // Licznik wiadomości
-  const [captchaToken, setCaptchaToken] = useState(null);
   const canvasRef = useRef(null);
   const MAX_CHARACTERS = 1150;
   const MAX_MESSAGES = 3;
@@ -24,24 +22,18 @@ const Form = () => {
     e.preventDefault();
     
     if (messageCount >= MAX_MESSAGES) {
-      alert('Osiągnąłeś maksymalną liczbę wysłanych wiadomości!');
-      return;
-    }
-
-    if (!captchaToken) {
-      alert('Proszę potwierdzić, że nie jesteś robotem.');
+      alert('Osignąłeś maksymalną liczbę wysłanych wiadomości!');
       return;
     }
 
     setIsSubmitting(true);
     const imageUrl = await addTextToImage(content);
-    const success = await sendToBackend(imageUrl, captchaToken);
+    const success = await sendToBackend(imageUrl);
 
     if (success) {
       setIsSubmitted(true);
       setTitle('');
       setContent('');
-      setCaptchaToken(null);  // Reset CAPTCHA
       // Zwiększ licznik wiadomości i zapisz w ciasteczkach
       const newMessageCount = messageCount + 1;
       setMessageCount(newMessageCount);
@@ -101,7 +93,7 @@ const Form = () => {
     return lines;
   };
 
-  const sendToBackend = async (imageUrl, captchaToken) => {
+  const sendToBackend = async (imageUrl) => {
     const response = await fetch('/api/send-to-discord', {  // Next.js API Route
       method: 'POST',
       headers: {
@@ -111,7 +103,6 @@ const Form = () => {
       body: JSON.stringify({
         title: title,
         imageUrl: imageUrl,
-        captchaToken: captchaToken,  // Przesyłanie tokenu CAPTCHA
       }),
     });
   
@@ -134,10 +125,6 @@ const Form = () => {
     const expirationDate = new Date();
     expirationDate.setFullYear(expirationDate.getFullYear() + 1);  // Ciasteczko wygasa za rok
     document.cookie = `messageCount=${count}; expires=${expirationDate.toUTCString()}; path=/`;
-  };
-
-  const handleCaptchaChange = (token) => {
-    setCaptchaToken(token);
   };
 
   return (
@@ -181,13 +168,6 @@ const Form = () => {
           <div className="text-sm text-gray-400 mt-2">
             {content.length}/{MAX_CHARACTERS} znaków
           </div>
-        </div>
-        {/* ReCAPTCHA */}
-        <div className="flex justify-center">
-          <ReCAPTCHA
-            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-            onChange={handleCaptchaChange}
-          />
         </div>
         <div>
           <button
