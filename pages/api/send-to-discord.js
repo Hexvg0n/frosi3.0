@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       return res.status(403).json({ message: 'Brak dostępu - nieautoryzowany' });
     }
 
-    const webhookUrl = 'https://discord.com/api/webhooks/1315293442603089960/MsYrITLkEF1dH5dSxIDiDV0fTPQrYhvQwqN90_BPMM2P8v0i04Idr4mlzDKlzxOhUTgt';
+    const webhookUrl = 'https://discord.com/api/webhooks/1315292183133290558/Bf12MBPeptNHZxcwTqB77irjgjW12l0xFRbcD9hfhWua3dWiFvY99FJ9m4G5SWuedAbf';
 
     try {
       // Pobieranie obrazu
