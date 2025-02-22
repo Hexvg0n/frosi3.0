@@ -1,289 +1,198 @@
-// ./components/QCPhotos.js
-
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { X, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 
 function QCPhotos({ photos, groupIndex }) {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [loadingStates, setLoadingStates] = useState({});
-  const [currentIndex, setCurrentIndex] = useState(0); // Indeks aktualnie wyświetlanego zdjęcia
-  const [lightboxLoading, setLightboxLoading] = useState(false); // Stan ładowania lightboxa
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [lightboxLoading, setLightboxLoading] = useState(false);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const minSwipeDistance = 50;
 
-  // Funkcje do obsługi lightboxu
   const openLightbox = (photoUrl, index) => {
     setSelectedPhoto(photoUrl);
     setCurrentIndex(index);
-    setLightboxLoading(true); // Rozpoczęcie ładowania lightboxa
+    setLightboxLoading(true);
   };
 
   const closeLightbox = () => {
     setSelectedPhoto(null);
-    setLightboxLoading(false); // Resetowanie stanu ładowania
+    setLightboxLoading(false);
   };
 
   const handleImageLoad = (index) => {
-    setLoadingStates((prevStates) => ({
-      ...prevStates,
-      [index]: false,
-    }));
-    if (index === currentIndex) {
-      setLightboxLoading(false); // Zakończenie ładowania lightboxa
-    }
+    setLoadingStates(prev => ({ ...prev, [index]: false }));
+    if (index === currentIndex) setLightboxLoading(false);
   };
 
   const handleImageError = (index) => {
-    setLoadingStates((prevStates) => ({
-      ...prevStates,
-      [index]: false,
-    }));
-    if (index === currentIndex) {
-      setLightboxLoading(false); // Zakończenie ładowania lightboxa w przypadku błędu
-    }
+    setLoadingStates(prev => ({ ...prev, [index]: false }));
+    if (index === currentIndex) setLightboxLoading(false);
   };
 
-  const showPrevious = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? photos.length - 1 : prevIndex - 1
-    );
-    setLightboxLoading(true); // Rozpoczęcie ładowania nowego zdjęcia
-  };
+  const showPrevious = useCallback(() => {
+    setCurrentIndex(prev => (prev === 0 ? photos.length - 1 : prev - 1));
+    setLightboxLoading(true);
+  }, [photos.length]);
 
-  const showNext = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === photos.length - 1 ? 0 : prevIndex + 1
-    );
-    setLightboxLoading(true); // Rozpoczęcie ładowania nowego zdjęcia
-  };
+  const showNext = useCallback(() => {
+    setCurrentIndex(prev => (prev === photos.length - 1 ? 0 : prev + 1));
+    setLightboxLoading(true);
+  }, [photos.length]);
 
-  // Obsługa nawigacji za pomocą klawiatury
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (!selectedPhoto) return;
-
-      if (e.key === 'ArrowLeft') {
-        showPrevious();
-      } else if (e.key === 'ArrowRight') {
-        showNext();
-      } else if (e.key === 'Escape') {
-        closeLightbox();
-      }
-    },
-    [selectedPhoto]
-  );
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [handleKeyDown]);
-
-  // Obsługa gestów swipe na urządzeniach mobilnych
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-
-  const minSwipeDistance = 50; // Minimalna odległość swipe w pikselach
+  const handleKeyDown = useCallback((e) => {
+    if (!selectedPhoto) return;
+    if (e.key === 'ArrowLeft') showPrevious();
+    if (e.key === 'ArrowRight') showNext();
+    if (e.key === 'Escape') closeLightbox();
+  }, [selectedPhoto, showPrevious, showNext]);
 
   const onTouchStart = (e) => {
-    setTouchEnd(null); // Reset touchEnd
+    setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
   };
 
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
     const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      showNext();
-    } else if (isRightSwipe) {
-      showPrevious();
-    }
+    if (Math.abs(distance) < minSwipeDistance) return;
+    distance > 0 ? showNext() : showPrevious();
   };
 
   useEffect(() => {
-    if (selectedPhoto) {
-      setTouchStart(null);
-      setTouchEnd(null);
-    }
-  }, [selectedPhoto]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
-  // Resetowanie currentIndex przy zmianie photos (paginacja)
   useEffect(() => {
-    if (currentIndex !== 0) {
+    if (photos.length > 0 && currentIndex >= photos.length) {
       setCurrentIndex(0);
-      // Opcjonalnie zamknij lightbox, jeśli jest otwarty
-      if (selectedPhoto) {
-        closeLightbox();
-      }
+      closeLightbox();
     }
-    // Resetowanie loadingStates dla nowych zdjęć
-    setLoadingStates({});
+  }, [photos, currentIndex]);
+
+  useEffect(() => {
+    if (photos.length > 0 && currentIndex !== 0) {
+      setCurrentIndex(0);
+      setLoadingStates({});
+    }
   }, [photos]);
 
   if (photos.length === 0) {
-    return <div className="text-gray-300">Brak dostępnych zdjęć w tej grupie.</div>;
+    return <div className="text-gray-300 p-4">Brak dostępnych zdjęć w tej grupie.</div>;
   }
 
   return (
-    <div className="relative bg-gray-700 bg-opacity-75 p-4 rounded-lg shadow-lg flex flex-col items-center justify-center">
-      <div className="flex items-center justify-center w-full">
-        {/* Przyciski Nawigacyjne */}
+    <div className="relative bg-gray-700/75 p-4 rounded-xl shadow-lg">
+      <div className="flex items-center justify-center w-full relative">
+        {/* Navigation Arrows */}
         <button
           onClick={showPrevious}
-          className="absolute left-0 z-10 p-2 bg-gray-800 bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-opacity duration-300"
+          className="absolute left-0 z-10 p-2 bg-gray-800/50 backdrop-blur-sm rounded-full hover:bg-purple-500/30 transition-all duration-300 group -translate-x-1/2"
           aria-label={`Poprzednie zdjęcie w grupie ${groupIndex}`}
         >
-          &#8592;
+          <ArrowLeft className="w-6 h-6 text-purple-300 group-hover:text-purple-400 group-hover:scale-110 transition-transform" />
         </button>
 
-        <div className="flex items-center justify-center">
-          <div className="relative">
-            {/* Spinner ładowania */}
-            {loadingStates[currentIndex] !== false && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-200 rounded-lg">
-                <svg
-                  className="animate-spin h-8 w-8 text-gray-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  ></path>
-                </svg>
-              </div>
-            )}
-            {/* Wyświetlanie Aktualnego Zdjęcia */}
-            <img
-              src={photos[currentIndex]}
-              alt={`QC Photo ${currentIndex + 1} w grupie ${groupIndex}`}
-              className={`max-h-full object-contain rounded-lg shadow-md hover:opacity-80 transition-opacity ${
-                loadingStates[currentIndex] === false ? '' : 'invisible'
-              } cursor-pointer`}
-              loading="lazy"
-              onLoad={() => handleImageLoad(currentIndex)}
-              onError={() => handleImageError(currentIndex)}
-              onClick={() => openLightbox(photos[currentIndex], currentIndex)}
-              onTouchStart={onTouchStart}
-              onTouchMove={onTouchMove}
-              onTouchEnd={onTouchEnd}
-            />
-            {/* Licznik Zdjęć */}
-            <div
-              className="absolute bottom-2 right-2 bg-gray-800 bg-opacity-50 text-white text-sm px-2 py-1 rounded"
-              aria-label={`Zdjęcie ${currentIndex + 1} z ${photos.length}`}
-            >
-              {currentIndex + 1}/{photos.length}
+        {/* Main Image Container */}
+        <div className="relative w-full max-w-2xl">
+          {loadingStates[currentIndex] && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50 rounded-xl">
+              <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
             </div>
+          )}
+
+          <motion.img
+            src={photos[currentIndex]}
+            alt={`QC Photo ${currentIndex + 1} w grupie ${groupIndex}`}
+            className={`w-full h-64 object-contain rounded-lg shadow-lg cursor-zoom-in ${
+              loadingStates[currentIndex] ? 'opacity-0' : 'opacity-100'
+            }`}
+            loading="lazy"
+            onLoad={() => handleImageLoad(currentIndex)}
+            onError={() => handleImageError(currentIndex)}
+            onClick={() => openLightbox(photos[currentIndex], currentIndex)}
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+
+          <div className="absolute bottom-2 right-2 bg-gray-800/70 backdrop-blur-sm px-3 py-1 rounded-full text-sm text-purple-300">
+            {currentIndex + 1}/{photos.length}
           </div>
         </div>
 
         <button
           onClick={showNext}
-          className="absolute right-0 z-10 p-2 bg-gray-800 bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-opacity duration-300"
+          className="absolute right-0 z-10 p-2 bg-gray-800/50 backdrop-blur-sm rounded-full hover:bg-purple-500/30 transition-all duration-300 group translate-x-1/2"
           aria-label={`Następne zdjęcie w grupie ${groupIndex}`}
         >
-          &#8594;
+          <ArrowRight className="w-6 h-6 text-purple-300 group-hover:text-purple-400 group-hover:scale-110 transition-transform" />
         </button>
       </div>
 
-      {/* Lightbox */}
+      {/* Lightbox Overlay */}
       {selectedPhoto && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex md:items-center justify-center"
           onClick={closeLightbox}
         >
-          <div
-            className="relative max-w-3xl max-h-full"
-            onClick={(e) => e.stopPropagation()} // Zapobiega zamknięciu lightboxu po kliknięciu na zdjęcie
-          >
-            {/* Spinner ładowania w Lightboxie */}
+          <div className="relative max-w-4xl w-full max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+            {/* Lightbox Loading */}
             {lightboxLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
-                <svg
-                  className="animate-spin h-12 w-12 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  ></path>
-                </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Loader2 className="w-12 h-12 text-purple-400 animate-spin" />
               </div>
             )}
-            {/* Wyświetlanie Aktualnego Zdjęcia w Lightboxie */}
+
+            {/* Lightbox Content */}
             <motion.img
               src={photos[currentIndex]}
               alt={`QC Photo ${currentIndex + 1} w grupie ${groupIndex}`}
-              className={`max-w-full max-h-full rounded-lg shadow-md ${
-                lightboxLoading ? 'invisible' : 'visible'
-              }`}
-              loading="lazy"
-              onLoad={() => handleImageLoad(currentIndex)}
-              onError={() => handleImageError(currentIndex)}
+              className="w-full h-full object-contain"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
+              onLoad={() => handleImageLoad(currentIndex)}
             />
-            {/* Licznik Zdjęć w Lightbox */}
-            <div
-              className="absolute bottom-4 right-4 bg-gray-800 bg-opacity-50 text-white text-sm px-2 py-1 rounded"
-              aria-label={`Zdjęcie ${currentIndex + 1} z ${photos.length}`}
-            >
+
+            {/* Lightbox Controls */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-gray-800/70 backdrop-blur-sm px-4 py-2 rounded-full text-purple-300">
               {currentIndex + 1}/{photos.length}
             </div>
-            {/* Przyciski Nawigacyjne w Lightboxie */}
+
             <button
-              onClick={showPrevious}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 p-3 bg-gray-800 bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-opacity duration-300"
-              aria-label={`Poprzednie zdjęcie w grupie ${groupIndex}`}
+              onClick={(e) => { e.stopPropagation(); showPrevious(); }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-gray-800/70 backdrop-blur-sm rounded-full hover:bg-purple-500/30 transition-all duration-300 group"
             >
-              &#8592;
+              <ArrowLeft className="w-8 h-8 text-purple-300 group-hover:text-purple-400 group-hover:scale-110" />
             </button>
+
             <button
-              onClick={showNext}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 p-3 bg-gray-800 bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-opacity duration-300"
-              aria-label={`Następne zdjęcie w grupie ${groupIndex}`}
+              onClick={(e) => { e.stopPropagation(); showNext(); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-gray-800/70 backdrop-blur-sm rounded-full hover:bg-purple-500/30 transition-all duration-300 group"
             >
-              &#8594;
+              <ArrowRight className="w-8 h-8 text-purple-300 group-hover:text-purple-400 group-hover:scale-110" />
             </button>
-            {/* Przycisk Zamknięcia */}
+
             <button
               onClick={closeLightbox}
-              className="absolute top-0 right-0 m-4 p-2 bg-gray-800 bg-opacity-50 text-white rounded-full hover:bg-opacity-75 transition-opacity duration-300"
-              aria-label="Zamknij lightbox"
+              className="absolute top-6 right-6 p-2 bg-gray-800/70 backdrop-blur-sm rounded-full hover:bg-purple-500/30 transition-all duration-300 group"
             >
-              &times;
+              <X className="w-8 h-8 text-purple-300 group-hover:text-purple-400 group-hover:rotate-90" />
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -4,7 +4,7 @@ import { SiTiktok } from "react-icons/si";
 
 export default function FooterSection() {
   return (
-    <footer className="bg-transparent text-white py-6 border-t-2 border-b-2 border-gray-500">
+    <footer className="bg-transparent text-white py-6 border-t-2 border-b-2 border-gray-500 z-90">
       <div className="container mx-auto flex justify-center flex-wrap space-x-4">
         <a
           href="https://www.tiktok.com/@frosiakr3ps"

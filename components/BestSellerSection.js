@@ -1,9 +1,9 @@
-import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { Search, ShoppingCart } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function BestSellersSection() {
+  const router = useRouter();
   const bestsellers = [
     { id: 1, title: "Air Jordan 4", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6656410659&affcode=frosireps", image: "/images/101.png" },
     { id: 2, title: "Air Force 1", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D5303810327&affcode=frosireps", image: "/images/102.png" },
@@ -11,91 +11,76 @@ export default function BestSellersSection() {
     { id: 4, title: "YZY X GAP X BALENCIAGA", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D683748985499&affcode=frosireps", image: "/images/104.png" },
     { id: 5, title: "Air Jordan 1 Retro High Travis Scott OG Mocha", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6388553113&affcode=frosireps", image: "/images/105.png" },
     { id: 6, title: "Air Pods 2", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6516369527&affcode=frosireps", image: "/images/106.png" },
-    { id: 7, title: "Rick Owens Rammones", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D741087802238&affcode=frosireps", image: "/images/107.png" },
+    { id: 7, title: "Rick Owens Ramones", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fitem.taobao.com%2Fitem.htm%3Fid%3D741087802238&affcode=frosireps", image: "/images/107.png" },
     { id: 8, title: "TNF Jacket", linkTo: "https://www.kakobuy.com/item/details?url=https%3A%2F%2Fweidian.com%2Fitem.html%3FitemID%3D6503405541&affcode=frosireps", image: "/images/108.png" },
   ];
-
-
-  const router = useRouter();
-
   const handleQCClick = (link) => {
     router.push(`/qc?url=${encodeURIComponent(link)}`);
   };
 
-  // Animations
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.5,
-        ease: 'easeOut',
-      },
-    },
-  };
-
   return (
-    <div
-      className="p-8 mt-0 min-h-auto border-t-2 border-gray-700 mb-12"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <h2 className="text-4xl font-bold text-center mb-12 text-gray-200">
-        Best Sellers
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto ">
-        {bestsellers.map((item) => (
-          <motion.div
-            key={item.id}
-            className="flex flex-col  rounded-lg  shadow-md shadow-white overflow-hidden border-2 "
-            variants={cardVariants}
-            whileHover={{
-              scale: 1.02,
-              boxShadow: '0px 10px 15px rgba(255, 255, 255, 0.5)',
-            }}
-          >
-            <img
-              src={item.image}
-              alt={item.title}
-              className="w-[90%]  object-cover"
-            />
-            <div className="p-4 flex flex-col flex-grow">
-              <h3 className="text-lg font-semibold text-gray-100 mb-2">
-                {item.title}
-              </h3>
-              <div className="mt-auto flex flex-col space-y-2">
-                <motion.button
-                  onClick={() => handleQCClick(item.linkTo)}
-                  className="flex items-center justify-center bg-indigo-500 hover:bg-indigo-300 text-white px-4 py-2 rounded-lg font-bold transition-all duration-300"
-                >
-                  <Search className="mr-2" size={20} />
-                  QC
-                </motion.button>
-                <motion.a
-                  href={item.linkTo}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg font-bold transition-all duration-300"
-                >
-                  <ShoppingCart className="mr-2" size={20} />
-                  Kup na KakoBuy
-                </motion.a>
+    <div className="relative py-24 px-4">
+      <div className="fixed inset-0 -z-10 opacity-30">
+        <div 
+          className="absolute w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,#4F46E5_0%,transparent_60%)]"
+          style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto">
+        <motion.h2 
+          className="text-3xl md:text-4xl font-bold text-center mb-16 bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          Best Sellers
+        </motion.h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {bestsellers.map((item, index) => (
+            <motion.div
+              key={item.id}
+              className="bg-gradient-to-br from-gray-900/40 to-gray-800/20 backdrop-blur-xl border border-white/10 rounded-3xl p-4 hover:border-purple-500/30 transition-all"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <img
+                src={item.image}
+                alt={item.title}
+                className="w-full h-64 object-contain mb-4"
+              />
+              
+              <div className="p-4 space-y-4">
+                <h3 className="text-lg font-semibold text-gray-100">{item.title}</h3>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <motion.button
+                    onClick={() => handleQCClick(item.linkTo)}
+                    className="flex items-center justify-center gap-2 p-2 bg-purple-600/30 hover:bg-purple-500/50 rounded-xl"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <Search className="w-5 h-5" />
+                    QC
+                  </motion.button>
+                  
+                  <motion.a
+                    href={item.linkTo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 p-2 bg-blue-600/30 hover:bg-blue-500/50 rounded-xl"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    Kup
+                  </motion.a>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );

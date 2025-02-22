@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function NavbarSection() {
   const [isOpen, setIsOpen] = useState(false);
@@ -7,73 +8,140 @@ export default function NavbarSection() {
     setIsOpen(!isOpen);
   };
 
+  const navItems = [
+    { name: "HOME", href: "/" },
+    { name: "W2C", href: "/w2c" },
+    { name: "QC FINDER", href: "/qc" },
+    { name: "CONVERTER", href: "/converter" },
+    { name: "TRACKING", href: "/tracking" },
+  ];
+
   return (
-    <div
-      className="h-[10vh] flex items-center xl:justify-around md:justify-between p-4"
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="h-[10vh] flex items-center xl:justify-around md:justify-between p-4 mb-10"
       style={{
-        backgroundColor: "transparent",
-        marginTop: "1.5vh",
-        position: "relative",
-        zIndex: 40,
+        background: "rgba(0, 0, 0, 0.25)",
+        position: "fixed",
+        width: "100%",
+        top: 0,
+        zIndex: 11,
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
       }}
     >
       <a href="/" className="block">
-        <img
+        <motion.img
           src="/images/logo.png"
           alt="Logo"
-          className="h-full max-h-[8vh] object-contain transition-all duration-300 hover:scale-90"
+          className="h-full max-h-[8vh] object-contain"
+          whileHover={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 300 }}
         />
       </a>
+
       <div className="lg:hidden flex items-center justify-end flex-grow">
-        <button
+        <motion.button
           className="text-black focus:outline-none p-4"
           onClick={toggleMenu}
           style={{ position: "absolute", top: 0, right: 0, zIndex: 100 }}
+          whileHover={{ scale: 1.1 }}
         >
           <span className="text-white text-5xl font-bold">☰</span>
-        </button>
+        </motion.button>
       </div>
+
       <nav
-        className={`fixed top-0 left-0 h-screen w-full bg-black p-4 transition-transform duration-300 ease-in-out z-50 transform ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:relative lg:transform-none lg:h-auto lg:bg-transparent lg:w-auto lg:flex lg:items-center`}
+        className={`lg:relative lg:transform-none lg:h-auto lg:bg-transparent lg:w-auto lg:flex lg:items-center`}
       >
-        <div
-          className={`flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-6 lg:items-center`}
-        >
-          <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/">HOME</a>
-            <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
-          </button>
-          <button className="text-white hover:drop-shadow-xl transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/w2c">W2C</a>
-            <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
-          </button>
-          <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/qc">QC FINDER</a>
-            <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
-          </button>
-          <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/converter">CONVERTER</a>
-            <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
-          </button>
-           
-          <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/tracking">TRACKING</a>
-            <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
-          </button>
-          <button className="text-white hover:shadow-lg transition-all duration-300 p-4 lg:p-2 relative group font-bold">
-            <a href="/giveaways">🎄Giveaways</a>
-            <span className="block absolute bottom-0 left-0 w-0 h-[2px] bg-white transition-all duration-300 group-hover:w-full"></span>
-          </button> 
-          <button className="text-blue-500 hover:shadow-lg transition-all duration-300 border border-blue-500 rounded-lg px-6 py-2 lg:px-4 lg:py-2 hover:bg-blue-500 hover:text-white font-bold">
-            <a href="https://discord.gg/invite/frosireps" target="_blank">DISCORD</a>
-          </button>
-          <button className="text-red-600 hover:shadow-lg transition-all duration-300 border border-red-600 rounded-lg px-6 py-2 lg:px-4 lg:py-2 hover:bg-red-600 hover:text-white font-bold">
-            <a href="https://ikako.vip/r/frosireps" target="_blank">Zarejestruj się</a>
-          </button>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed top-0 left-0 h-screen w-full bg-black/95 p-4 z-40"
+              style={{ backdropFilter: "blur(16px)" }}
+            >
+              <div className="flex flex-col space-y-6 items-center justify-center h-full">
+                {navItems.map((item) => (
+                  <motion.div
+                    key={item.name}
+                    whileHover={{ scale: 1.05 }}
+                    className="relative group"
+                  >
+                    <a
+                      href={item.href}
+                      className="text-2xl text-white font-bold px-6 py-3 relative"
+                    >
+                      {item.name}
+                      <span className="absolute bottom-2 left-0 w-full h-[2px] bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                    </a>
+                  </motion.div>
+                ))}
+                <div className="flex flex-col space-y-4 mt-8">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl text-white font-bold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <a href="https://discord.gg/invite/frosireps" target="_blank">
+                      DISCORD
+                    </a>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    className="px-8 py-3 bg-gradient-to-r from-red-500 to-orange-600 rounded-xl text-white font-bold shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <a href="https://ikako.vip/r/frosireps" target="_blank">
+                      Zarejestruj się
+                    </a>
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="hidden lg:flex space-x-8 items-center">
+          {navItems.map((item) => (
+            <motion.div
+              key={item.name}
+              className="relative group"
+              whileHover={{ scale: 1.05 }}
+            >
+              <a
+                href={item.href}
+                className="text-white font-medium px-4 py-2 relative"
+              >
+                {item.name}
+                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+              </a>
+            </motion.div>
+          ))}
+          <div className="flex space-x-4 ml-4">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              className="px-6 py-2  bg-blue-500  rounded-xl text-white font-bold shadow-lg hover:shadow-xl transition-all"
+            >
+              <a href="https://discord.gg/invite/frosireps" target="_blank">
+                DISCORD
+              </a>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              className="px-6 py-2  bg-red-600  rounded-xl text-white font-bold shadow-lg hover:shadow-xl transition-all"
+            >
+              <a href="https://ikako.vip/r/frosireps" target="_blank">
+                Zarejestruj się
+              </a>
+            </motion.button>
+          </div>
         </div>
       </nav>
-    </div>
+    </motion.div>
   );
 }

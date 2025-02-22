@@ -84,3 +84,60 @@ body {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
+
+
+.loader {
+  border-top-color: #00c8ff;
+  animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* W pliku CSS globalnym lub w Tailwind config */
+
+@keyframes float {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, -10px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+button {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+@keyframes gradient-pulse {
+  0% { 
+    opacity: 0.2; 
+    transform: translate(-50%, -50%) scale(1); 
+  }
+  50% { 
+    opacity: 0.4; 
+    transform: translate(-50%, -50%) scale(1.2); 
+  }
+  100% { 
+    opacity: 0.2; 
+    transform: translate(-50%, -50%) scale(1); 
+  }
+}

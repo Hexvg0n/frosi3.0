@@ -1,313 +1,416 @@
-// ./pages/w2c/index.js
-
+// pages/w2c/index.js
+import React from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/router';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, ShoppingCart, Eye, Filter, X, Loader2, ArrowUp, ArrowDown } from 'lucide-react';
+import axios from 'axios';
+import debounce from 'lodash.debounce';
+import NavbarSection from "@/components/NavbarSection";
 import FooterSection from "@/components/FooterSection";
 import FooterTwoSection from "@/components/FooterTwoSection";
-import NavbarSection from "@/components/NavbarSection";
-import Link from 'next/link';
-import axios from "axios";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/router";
-import debounce from "lodash.debounce";
-import { motion } from "framer-motion";
-import { Search, ShoppingCart } from "lucide-react";
 
-export default function W2C() {
-  const [items, setItems] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [sortOrder, setSortOrder] = useState("");
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [selectedAgent, setSelectedAgent] = useState("kakobuy");
-
-  const queryRef = useRef(""); // Search query
-  const router = useRouter();
-
-  const categories = {
-    "": "Wszystkie",
-    "Hoodies/Sweaters": "Bluzy",
-    Jackets: "Kurtki",
-    Accessories: "Biżuteria",
-    "Other Stuff": "Inne",
-    "Pants/Shorts": "Spodnie",
-    Headware: "Czapki",
-    Shoes: "Buty",
-    "T-Shirts": "Koszulki",
-  };
-
-  const agents = [
-    { value: "allchinabuy", label: "AllChinaBuy" },
-    { value: "superbuy", label: "SuperBuy" },
-    { value: "kakobuy", label: "KakoBuy" },
-    { value: "cnfans", label: "CNFans" },
-    { value: "hoobuy", label: "HooBuy" },
-    { value: "mulebuy", label: "MuleBuy" },
-  ];
-
-  // Mapowanie agentów na style przycisków
-  const agentButtonStyles = {
-    kakobuy: "bg-gradient-to-r from-red-500 to-red-700",
-    cnfans: "bg-gradient-to-r from-red-500 to-red-700",
-    superbuy: "bg-gradient-to-r from-red-500 to-red-700",
-    allchinabuy: "bg-gradient-to-r from-teal-400 to-teal-600",
-    hoobuy: "bg-gradient-to-r from-yellow-400 to-orange-500",
-    mulebuy: "bg-gradient-to-r from-orange-600 to-orange-800",
-  };
-
-  // Styl przycisku QC
-  const qcButtonStyle = "bg-gradient-to-r from-indigo-500 to-indigo-700";
-
-  const handleQCClick = (link) => {
-    router.push(`/qc?url=${encodeURIComponent(link)}`);
-  };
-
-  const fetchItems = useCallback(
-    async (pageToFetch) => {
-      if (!hasMore && pageToFetch !== 0) return;
-      setIsLoading(true);
-
-      try {
-        const response = await axios.get("/api/products", {
-          params: {
-            category: selectedCategory || undefined,
-            name: queryRef.current || undefined,
-            sortOrder: sortOrder || undefined,
-            limit: 50,
-            skip: pageToFetch * 50,
-          },
-        });
-
-        const convertedItems = await Promise.all(
-          response.data.results.map(async (item) => {
-            try {
-              const convertResponse = await axios.post("/api/convert", {
-                url: item.link,
-              });
-              const convertedLink = convertResponse.data[selectedAgent];
-              return {
-                ...item,
-                link: convertedLink || item.link,
-              };
-            } catch (err) {
-              console.error("Error converting URL:", err);
-              return item;
-            }
-          })
-        );
-
-        if (pageToFetch === 0 && convertedItems.length === 0) {
-          setErrorMessage("Brak wyników dla podanego produktu.");
-          setHasMore(false);
-        } else {
-          setItems((prevItems) => [...prevItems, ...convertedItems]);
-          setErrorMessage("");
-          setHasMore(convertedItems.length === 50);
-        }
-      } catch (error) {
-        console.error(
-          "Error fetching items:",
-          error.response ? error.response.data : error.message
-        );
-        setErrorMessage("Wystąpił błąd podczas pobierania danych.");
-      } finally {
-        setIsLoading(false);
+const GradientBackground = () => (
+  <div className="fixed inset-0 z-0 opacity-30">
+    <div 
+      className="absolute w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,#4F46E5_0%,transparent_60%)]"
+      style={{
+        top: '20%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        animation: 'gradient-pulse 15s infinite alternate'
+      }}
+    />
+    <style jsx global>{`
+      @keyframes gradient-pulse {
+        0% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
+        50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.2); }
+        100% { opacity: 0.2; transform: translate(-50%, -50%) scale(1); }
       }
-    },
-    [selectedCategory, sortOrder, hasMore, selectedAgent]
+    `}</style>
+  </div>
+);
+
+const GlassCard = ({ children }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    className="bg-gradient-to-br from-gray-900/40 to-gray-800/20 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-6 shadow-2xl shadow-black/30"
+  >
+    {children}
+  </motion.div>
+);
+
+const PriceBadge = ({ price, trend }) => {
+  const TrendIcon = trend === 'up' ? ArrowUp : ArrowDown;
+  return (
+    <div className="flex items-center gap-2 bg-gradient-to-r from-purple-600/40 to-blue-600/40 px-3 sm:px-4 py-1 sm:py-2 rounded-full backdrop-blur-sm border border-white/10">
+      <span className="font-bold text-sm sm:text-base bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent">
+        {price}
+      </span>
+      <TrendIcon className={`w-4 h-4 ${trend === 'up' ? 'text-green-400' : 'text-red-400'}`} />
+    </div>
   );
+};
 
-  const debouncedFetch = useCallback(
-    debounce(() => {
-      setItems([]);
-      setPage(0);
-      setHasMore(true);
-      fetchItems(0);
-    }, 500),
-    [fetchItems]
-  );
-
-  const handleInputChange = (e) => {
-    queryRef.current = e.target.value;
-    setErrorMessage("");
-    debouncedFetch();
-  };
-
-  const handleCategoryChange = (e) => {
-    setSelectedCategory(e.target.value);
-  };
-
-  const handleSortChange = (e) => {
-    setSortOrder(e.target.value);
-  };
-
-  const handleAgentChange = (e) => {
-    setSelectedAgent(e.target.value);
-  };
-
-  useEffect(() => {
-    setItems([]);
-    setPage(0);
-    setHasMore(true);
-    fetchItems(0);
-  }, [selectedCategory, sortOrder, selectedAgent]);
-
-  const observer = useRef();
-  const lastItemRef = useCallback(
-    (node) => {
-      if (isLoading) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setPage((prevPage) => prevPage + 1);
-        }
-      });
-      if (node) observer.current.observe(node);
-    },
-    [isLoading, hasMore]
-  );
-
-  useEffect(() => {
-    if (page === 0) return;
-    fetchItems(page);
-  }, [page, fetchItems]);
+const ProductCard = React.memo(({ item }) => {
+  const router = useRouter();
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <>
-      <NavbarSection />
-      <div className="w-full px-4 py-4 flex justify-end">
-        <div className="relative md:w-2/3 w-full">
-          <input
-            type="text"
-            placeholder="Szukaj produktów..."
-            className="w-full p-3 pl-12 bg-gray-800 text-gray-300 border border-gray-700 rounded-lg shadow-lg focus:ring-2 focus:ring-gray-500"
-            onChange={handleInputChange}
-          />
-          <Search
-            className="absolute top-1/2 transform -translate-y-1/2 left-4 text-gray-500"
-            size={24}
-          />
+    <motion.article
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="relative group bg-gradient-to-br from-gray-900/60 to-gray-800/40 backdrop-blur-lg border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl shadow-black/30 hover:border-purple-500/30 transition-all duration-300 min-h-[420px] sm:min-h-[500px] flex flex-col"
+    >
+      <div className="relative aspect-square mb-4 sm:mb-6 overflow-hidden rounded-xl">
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20"
+          animate={{ opacity: isHovered ? 1 : 0 }}
+        />
+        <motion.img
+          src={item.productImage}
+          alt={item.name}
+          className="w-full h-full object-cover"
+          initial={{ scale: 1 }}
+          animate={{ scale: isHovered ? 1.05 : 1 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        />
+      </div>
+
+      <div className="space-y-2 sm:space-y-4 flex flex-col flex-grow">
+        <h3 className="font-semibold text-gray-100 line-clamp-2 text-sm sm:text-lg">
+          {item.name}
+        </h3>
+        
+        <div className="flex items-center justify-between mt-auto">
+          <PriceBadge price={item.price} trend={item.trend} />
+          <span className="text-xs text-gray-400 font-mono">{item.category}</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-2 sm:mt-4">
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm bg-purple-600/30 hover:bg-purple-500/50 rounded-lg sm:rounded-xl backdrop-blur-sm border border-white/10"
+            onClick={() => window.open(item.link, '_blank')}
+          >
+            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-purple-300" />
+            <span className="bg-gradient-to-r from-purple-200 to-purple-300 bg-clip-text text-transparent font-medium">
+              Kup teraz
+            </span>
+          </motion.button>
+          
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center justify-center gap-1 sm:gap-2 p-2 sm:p-3 text-xs sm:text-sm bg-blue-600/30 hover:bg-blue-500/50 rounded-lg sm:rounded-xl backdrop-blur-sm border border-white/10"
+            onClick={() => router.push(`/qc?url=${encodeURIComponent(item.link)}`)}
+          >
+            <Eye className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" />
+            <span className="bg-gradient-to-r from-blue-200 to-blue-300 bg-clip-text text-transparent font-medium">
+              Zobacz QC
+            </span>
+          </motion.button>
         </div>
       </div>
-      <div className="flex flex-col md:flex-row items-start min-h-full pt-5 pb-20 mx-4">
-        <div className="w-full md:w-1/3 md:sticky mb-4 md:top-16 bg-gradient-to-br from-gray-800 via-gray-900 to-gray-800 p-6 rounded-xl shadow-lg mr-4 overflow-y-auto max-h-screen">
-          <div className="flex flex-col space-y-6">
-            <div>
-              <label
-                htmlFor="agent"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Wybierz agenta
-              </label>
-              <select
-                id="agent"
-                value={selectedAgent}
-                onChange={handleAgentChange}
-                className="w-full p-3 bg-gray-700 border border-gray-600 text-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500"
-              >
-                {agents.map((agent) => (
-                  <option key={agent.value} value={agent.value}>
-                    {agent.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Kategoria
-              </label>
-              <select
-                id="category"
-                value={selectedCategory}
-                onChange={handleCategoryChange}
-                className="w-full p-3 bg-gray-700 border border-gray-600 text-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500"
-              >
-                {Object.entries(categories).map(([key, label]) => (
-                  <option key={key} value={key}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                htmlFor="sort"
-                className="block text-gray-300 font-medium mb-2"
-              >
-                Sortuj według ceny
-              </label>
-              <select
-                id="sort"
-                value={sortOrder}
-                onChange={handleSortChange}
-                className="w-full p-3 bg-gray-700 border border-gray-600 text-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500"
-              >
-                <option value="">Sortowanie (Brak)</option>
-                <option value="asc">Od najtańszych</option>
-                <option value="desc">Od najdroższych</option>
-              </select>
+    </motion.article>
+  );
+});
+
+const W2C = () => {
+  const router = useRouter();
+  const PAGE_SIZE = 50;
+  
+  const [state, setState] = useState({
+    items: [],
+    filters: {
+      category: '',
+      sort: '',
+      agent: 'kakobuy',
+      search: ''
+    },
+    isLoading: false,
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0
+  });
+
+  const filtersRef = useRef(state.filters);
+
+  useEffect(() => {
+    filtersRef.current = state.filters;
+  }, [state.filters]);
+
+  const fetchItems = useCallback(async (page = 1) => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    
+    try {
+      const { data } = await axios.get('/api/products', {
+        params: {
+          ...filtersRef.current,
+          limit: PAGE_SIZE,
+          skip: (page - 1) * PAGE_SIZE
+        }
+      });
+
+      const currentAgent = filtersRef.current.agent;
+      
+      const enhancedItems = await Promise.all(data.results.map(async item => {
+        try {
+          const { data } = await axios.post('/api/convert', { url: item.link });
+          return {
+            ...item,
+            link: data[currentAgent] || item.link,
+            productImage: data.product?.productImage || item.image_url,
+          };
+        } catch {
+          return { 
+            ...item, 
+            productImage: item.image_url
+          };
+        }
+      }));
+
+      setState(prev => ({
+        ...prev,
+        items: enhancedItems,
+        totalPages: Math.ceil(data.totalCount / PAGE_SIZE),
+        totalItems: data.totalCount,
+        currentPage: page,
+        isLoading: false
+      }));
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, []);
+
+  const handleSearch = useCallback(debounce(() => {
+    fetchItems(1);
+  }, 500), []);
+
+  const handleFilterChange = (name, value) => {
+    const scrollY = window.scrollY;
+    setState(prev => ({
+      ...prev,
+      filters: { ...prev.filters, [name]: value },
+      currentPage: 1
+    }));
+    
+    setTimeout(() => fetchItems(1).then(() => window.scrollTo(0, scrollY)), 0);
+  };
+
+  useEffect(() => {
+    fetchItems(state.currentPage);
+  }, [state.currentPage]);
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-gray-100 relative overflow-hidden">
+      <div className="h-[10vh]"/>
+      <GradientBackground />
+      <NavbarSection className="z-40" />
+
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-8 relative z-10">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-6 sm:mb-16"
+        >
+          <div className="relative mx-2 sm:mx-auto max-w-2xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-2xl rounded-3xl" />
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                placeholder="🔍 Wpisz nazwę produktu..."
+                className="w-full pl-4 pr-4 py-3 sm:pl-6 sm:pr-6 sm:py-5 text-sm sm:text-base bg-gray-900/50 backdrop-blur-lg border-2 border-white/10 rounded-xl sm:rounded-2xl text-gray-200 placeholder-gray-500 focus:outline-none focus:border-purple-500/50 transition-all font-medium"
+                value={state.filters.search}
+                onChange={(e) => {
+                  handleFilterChange('search', e.target.value);
+                  handleSearch();
+                }}
+              />
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="w-full md:w-2/3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {items.map((item, index) => (
-            <div
-              key={item._id}
-              ref={items.length === index + 1 ? lastItemRef : null}
-              className="bg-gray-800 text-gray-300 font-semibold rounded-lg shadow-lg p-4 flex flex-col justify-between h-full hover:shadow-2xl transition-shadow duration-300"
-            >
-              <div className="flex flex-col flex-grow">
-                <div className="relative">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full object-cover rounded-lg mb-2 cursor-pointer transform hover:scale-105 transition-transform duration-300"
-                    onClick={() => window.open(item.link, "_blank")}
-                  />
-                  <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                    {item.price}
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-center mt-2">
-                  {item.name}
-                </h3>
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-8">
+          <aside className="lg:w-80 space-y-4 sticky top-24 h-fit px-2 sm:px-0">
+            <GlassCard>
+              <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent">
+                Filtry & Sortowanie
+              </h2>
+              <Filters 
+                filters={state.filters}
+                onChange={handleFilterChange}
+              />
+            </GlassCard>
+          </aside>
+
+          <div className="flex-1">
+            {state.isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="min-h-[420px] sm:min-h-[500px] bg-gray-900/50 rounded-2xl sm:rounded-3xl animate-pulse" />
+                ))}
               </div>
-              {item.link && (
-                <div className="w-full flex flex-col space-y-2 mt-4">
-                  <motion.button
-                    onClick={() => window.open(item.link, "_blank")}
-                    className={`w-full ${
-                      agentButtonStyles[selectedAgent] ||
-                      "bg-gradient-to-r from-gray-600 to-gray-800"
-                    } text-white px-4 py-2 rounded-lg font-bold transition-transform duration-300 hover:scale-105 flex items-center justify-center`}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ShoppingCart className="mr-2" size={20} />
-                    KUP NA {selectedAgent.toUpperCase()}
-                  </motion.button>
-
-                  <motion.button
-                    onClick={() => handleQCClick(item.link)}
-                    className={`w-full ${qcButtonStyle} text-white px-4 py-2 rounded-lg font-bold transition-transform duration-300 hover:scale-105 flex items-center justify-center`}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Search className="mr-2" size={20} />
-                    QC
-                  </motion.button>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {state.items.map((item) => (
+                    <ProductCard key={item._id} item={item} />
+                  ))}
                 </div>
-              )}
-            </div>
+
+                {state.totalItems > 0 && (
+                  <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-2 sm:px-0">
+                    <span className="text-gray-400 text-sm">
+                      Pokazano {(state.currentPage - 1) * PAGE_SIZE + 1}-
+                      {Math.min(state.currentPage * PAGE_SIZE, state.totalItems)} z {state.totalItems}
+                    </span>
+                    
+                    <div className="flex gap-2">
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        className={`px-3 sm:px-4 py-2 text-sm rounded-lg ${
+                          state.currentPage === 1 
+                            ? 'bg-gray-800/50 cursor-not-allowed' 
+                            : 'bg-purple-600/30 hover:bg-purple-500/50'
+                        }`}
+                        onClick={() => fetchItems(state.currentPage - 1)}
+                        disabled={state.currentPage === 1}
+                      >
+                        Poprzednia
+                      </motion.button>
+                      
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        className={`px-3 sm:px-4 py-2 text-sm rounded-lg ${
+                          state.currentPage >= state.totalPages 
+                            ? 'bg-gray-800/50 cursor-not-allowed' 
+                            : 'bg-purple-600/30 hover:bg-purple-500/50'
+                        }`}
+                        onClick={() => fetchItems(state.currentPage + 1)}
+                        disabled={state.currentPage >= state.totalPages}
+                      >
+                        Następna
+                      </motion.button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <FooterSection />
+      <FooterTwoSection />
+    </div>
+  );
+};
+
+const Filters = ({ filters, onChange }) => {
+  const sortOptions = [
+    { value: '', label: 'Domyślne', color: 'from-gray-300 to-gray-500' },
+    { value: 'price_asc', label: 'Cena ↑', color: 'from-green-300 to-green-500' },
+    { value: 'price_desc', label: 'Cena ↓', color: 'from-red-300 to-red-500' },
+  ];
+
+  const agents = [
+    'kakobuy',
+    'superbuy',
+    'cnfans',
+    'allchinabuy',
+    'hoobuy',
+    'mulebuy',
+    'lovegobuy',
+    'joyabuy',
+    'basetao'
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-xs sm:text-sm font-semibold mb-3 text-gray-400">Agent Zakupowy</h3>
+        <div className="relative">
+          <select
+            value={filters.agent}
+            onChange={(e) => onChange('agent', e.target.value)}
+            className="w-full p-2 sm:p-3 text-sm bg-gray-900/30 backdrop-blur-sm border border-white/10 rounded-lg sm:rounded-xl appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
+          >
+            {agents.map((agent) => (
+              <option 
+                key={agent} 
+                value={agent}
+                className="bg-gray-800 text-gray-100 text-sm"
+              >
+                {agent.charAt(0).toUpperCase() + agent.slice(1)}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-xs sm:text-sm font-semibold mb-3 text-gray-400">Kategorie</h3>
+        <div className="grid grid-cols-2 gap-2">
+          {Object.entries({
+            '': 'Wszystkie',
+            'Shoes': 'Buty',
+            'Hoodies/Sweaters': 'Bluzy',
+            'T-Shirts': 'Koszulki',
+            'Jackets': 'Kurtki',
+            'Pants/Shorts': 'Spodnie/Shortsy',
+            'Accessories': 'Akcesoria',
+            'Hats': 'Czapki',
+            'Others': 'Inne'
+          }).map(([value, label]) => (
+            <motion.button
+              key={value}
+              onClick={() => onChange('category', value)}
+              className={`p-2 text-xs sm:text-sm rounded-md ${
+                filters.category === value 
+                  ? 'bg-gradient-to-r from-purple-600/30 to-blue-600/30'
+                  : 'bg-gray-900/30 hover:bg-gray-800/30'
+              }`}
+              whileHover={{ scale: 1.05 }}
+            >
+              <span className={filters.category === value ? 'text-purple-300' : 'text-gray-400'}>
+                {label}
+              </span>
+            </motion.button>
           ))}
         </div>
       </div>
-      <FooterSection />
-      <FooterTwoSection />
-    </>
+
+      <div>
+        <h3 className="text-xs sm:text-sm font-semibold mb-3 text-gray-400">Sortuj według</h3>
+        <div className="flex flex-col gap-2">
+          {sortOptions.map((option) => (
+            <motion.button
+              key={option.value}
+              onClick={() => onChange('sort', option.value)}
+              className={`flex items-center gap-2 p-2 sm:p-3 rounded-lg ${
+                filters.sort === option.value
+                  ? 'bg-gradient-to-r from-purple-600/30 to-blue-600/30'
+                  : 'bg-gray-900/30 hover:bg-gray-800/30'
+              }`}
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className={`w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gradient-to-r ${option.color}`} />
+              <span className={`text-xs sm:text-sm ${filters.sort === option.value ? 'text-white' : 'text-gray-400'}`}>
+                {option.label}
+              </span>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+export default W2C;

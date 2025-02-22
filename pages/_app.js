@@ -17,7 +17,7 @@ function App({ Component, pageProps }) {
           margin: 0;
           padding: 0;
           min-height: 100%;
-          background-image: url(/images/background.png);
+       
         }
         ::-webkit-scrollbar {
           width: 0;

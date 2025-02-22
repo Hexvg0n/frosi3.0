@@ -6,34 +6,40 @@ export default async function handler(req, res) {
   try {
     await connectToDatabase();
 
-    const { category, bestbatch, sortOrder, name, limit = 50, skip = 0 } = req.query;
+    const { category, sort, search, limit = 50, skip = 0 } = req.query;
 
-    // Konwersja limit i skip na liczby
     const limitNum = parseInt(limit, 10) || 50;
     const skipNum = parseInt(skip, 10) || 0;
 
-    // Budowanie filtru na podstawie parametrów zapytania
     let filter = {};
-    if (category) filter.category = category;
-    if (bestbatch === 'true') filter.batch = { $ne: 'Random' };
-    if (name) filter.name = new RegExp(name, 'i'); // Wyszukiwanie case-insensitive
-
-    // Budowanie opcji sortowania
-    let sort = {};
-    if (sortOrder) {
-      if (sortOrder === 'asc') {
-        sort.price = 1; // Rosnąco
-      } else if (sortOrder === 'desc') {
-        sort.price = -1; // Malejąco
-      }
+    
+    if (category && category !== '') {
+      filter.category = category;
+    }
+    
+    if (search) {
+      const searchTerms = search.trim().split(/\s+/);
+      filter.$and = searchTerms.map(term => ({
+        name: new RegExp(term, 'i')
+      }));
     }
 
-    // Pobieranie totalCount dla paginacji
+    let sortOptions = {};
+    switch(sort) {
+      case 'price_asc':
+        sortOptions.price = 1;
+        break;
+      case 'price_desc':
+        sortOptions.price = -1;
+        break;
+      default:
+        sortOptions = { _id: -1 };
+    }
+
     const totalCount = await Product.countDocuments(filter);
 
-    // Pobieranie produktów z bazy danych z zastosowaniem filtru, sortowania, limitu i skip
     const products = await Product.find(filter)
-      .sort(sort)
+      .sort(sortOptions)
       .limit(limitNum)
       .skip(skipNum)
       .lean();
