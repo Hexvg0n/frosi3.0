@@ -83,7 +83,9 @@ const QCPage = () => {
       const response = await axios.post("/api/qcPhotos", { 
         url: linkToConvert 
       }, {
-        cancelToken: source.token
+        headers: {
+          'X-API-Key': process.env.NEXT_PUBLIC_API_SECRET
+        }
       });
 
       clearTimeout(timeout);
@@ -179,11 +181,11 @@ const QCPage = () => {
                         ? 'bg-gray-700/50 cursor-not-allowed text-gray-500' 
                         : 'bg-gradient-to-br from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white'
                     }`}
-                    aria-label={isLoading ? "Przetwarzanie" : "Analizuj"}
+                    aria-label={isLoading ? "Przetwarzanie" : "Szukaj"}
                   >
                     {isLoading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : 'Analizuj'}
+                    ) : 'Szukaj'}
                   </button>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   env: {
-      SECRET_KEY: process.env.SECRET_KEY
+    NEXT_PUBLIC_API_SECRET: process.env.API_SECRET,
   }
 };
 

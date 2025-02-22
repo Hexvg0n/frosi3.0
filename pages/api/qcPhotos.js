@@ -1,20 +1,36 @@
 // pages/api/qcPhotos.js
 import axios from 'axios';
 
-// Konfiguracja
-const API_TIMEOUT = 10000; // 10 sekund
+// Konfiguracja bezpieczeństwa
+const ALLOWED_ORIGINS = [
+  'https://frosireps.eu',
+  'https://www.frosireps.eu',
+  'http://localhost:3000'
+];
+
+const API_SECRET = process.env.API_SECRET;
+const API_TIMEOUT = 10000;
 const FALLBACK_ERROR_MESSAGE = 'System error, please try again later';
 
+// Nagłówki bezpieczeństwa
+const securityHeaders = (origin) => ({
+  'Access-Control-Allow-Origin': origin,
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
+  'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
+  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload'
+});
+
+// Walidacja struktury odpowiedzi
 const validateApiResponse = (data) => {
-  // Sprawdzamy podstawową strukturę odpowiedzi
   if (!data || typeof data !== 'object') {
-    return {
-      valid: false,
-      error: 'Invalid API response structure'
-    };
+    return { valid: false, error: 'Invalid API structure' };
   }
 
-  // Obsługa błędów z API Kakobuy
   if (data.status === 'error') {
     return {
       valid: false,
@@ -23,17 +39,14 @@ const validateApiResponse = (data) => {
     };
   }
 
-  // Sprawdzamy poprawną strukturę danych
   if (!data.data || !Array.isArray(data.data)) {
-    return {
-      valid: false,
-      error: 'Missing or invalid data array in response'
-    };
+    return { valid: false, error: 'Invalid data format' };
   }
 
   return { valid: true };
 };
 
+// Przetwarzanie zdjęć
 const processPhotos = (apiData) => {
   try {
     const groupedPhotos = apiData.data.reduce((acc, item) => {
@@ -54,7 +67,7 @@ const processPhotos = (apiData) => {
         acc[qcDate].photos.push(imageUrl);
         return acc;
       } catch (error) {
-        console.error('Error processing item:', error);
+        console.error('Item processing error:', error);
         return acc;
       }
     }, {});
@@ -68,25 +81,70 @@ const processPhotos = (apiData) => {
   }
 };
 
+// Główny handler API
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ 
+  // Obsługa CORS dla preflight
+  if (req.method === 'OPTIONS') {
+    const origin = req.headers.origin;
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      Object.entries(securityHeaders(origin)).forEach(([key, value]) => {
+        res.setHeader(key, value);
+      });
+    }
+    return res.status(204).end();
+  }
+
+  // Weryfikacja żądania
+  const origin = req.headers.origin;
+  const clientIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+  // Sprawdzenie Origin
+  if (!ALLOWED_ORIGINS.includes(origin)) {
+    console.warn(`Blocked request from invalid origin: ${origin} (IP: ${clientIP})`);
+    return res.status(403).json({
       status: 'error',
-      code: 'method_not_allowed',
-      message: 'Only POST requests are allowed'
+      code: 'origin_blocked',
+      message: 'Access denied'
     });
   }
 
+  // Sprawdzenie klucza API
+  const apiKey = req.headers['x-api-key'];
+  if (apiKey !== API_SECRET) {
+    console.warn(`Invalid API key attempt from: ${origin} (IP: ${clientIP})`);
+    return res.status(401).json({
+      status: 'error',
+      code: 'invalid_key',
+      message: 'Unauthorized'
+    });
+  }
+
+  // Ustawienie nagłówków bezpieczeństwa
+  Object.entries(securityHeaders(origin)).forEach(([key, value]) => {
+    res.setHeader(key, value);
+  });
+
+  // Obsługa metod HTTP
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      status: 'error',
+      code: 'invalid_method',
+      message: 'Method not allowed'
+    });
+  }
+
+  // Walidacja parametrów
   const { url } = req.body;
   if (!url) {
     return res.status(400).json({
       status: 'error',
       code: 'missing_url',
-      message: 'Missing URL parameter'
+      message: 'URL parameter required'
     });
   }
 
   try {
+    // Wywołanie zewnętrznego API
     const apiUrl = `https://open.kakobuy.com/open/pic/qcImage?goodsUrl=${encodeURIComponent(url)}&token=aa38e63a04c292faba780abef3db2cee`;
     
     const response = await axios.get(apiUrl, {
@@ -94,38 +152,34 @@ export default async function handler(req, res) {
       validateStatus: (status) => status < 500
     });
 
+    // Walidacja odpowiedzi
     const validation = validateApiResponse(response.data);
-    
     if (!validation.valid) {
-      console.error('API Validation Failed:', {
+      console.error('API validation failed:', {
         url,
         status: response.status,
-        data: response.data,
-        validation
+        validationError: validation.error
       });
-
-      return res.status(validation.isApiError ? 400 : 502).json({
+      
+      return res.status(400).json({
         status: 'error',
-        code: validation.isApiError ? 'external_api_error' : 'invalid_response',
-        message: validation.error || 'Invalid response from external API',
-        externalResponse: validation.isApiError ? response.data : undefined
+        code: 'invalid_response',
+        message: validation.error
       });
     }
 
+    // Przetwarzanie danych
     const groupsData = processPhotos(response.data);
     
     if (!groupsData.length) {
       return res.status(404).json({
         status: 'error',
-        code: 'no_photos_found',
-        message: 'No valid QC photos found',
-        debug: {
-          originalUrl: url,
-          receivedItems: response.data.data?.length || 0
-        }
+        code: 'no_data',
+        message: 'No QC photos found'
       });
     }
 
+    // Sukces
     return res.status(200).json({
       status: 'success',
       data: {
@@ -134,36 +188,26 @@ export default async function handler(req, res) {
       },
       meta: {
         source: 'kakobuy',
-        requestedUrl: url,
         timestamp: new Date().toISOString()
       }
     });
 
   } catch (error) {
-    console.error('API Error:', {
+    // Obsługa błędów
+    console.error('API error:', {
       url,
-      error: error.response?.data || error.message,
+      error: error.message,
       stack: error.stack
     });
 
-    let statusCode = 500;
-    let errorCode = 'internal_error';
-    let message = FALLBACK_ERROR_MESSAGE;
-
-    if (axios.isAxiosError(error)) {
-      statusCode = error.response?.status || 503;
-      errorCode = error.code || 'network_error';
-      message = error.response?.data?.message || error.message;
-    }
+    const statusCode = axios.isAxiosError(error) 
+      ? error.response?.status || 503 
+      : 500;
 
     return res.status(statusCode).json({
       status: 'error',
-      code: errorCode,
-      message: message,
-      details: axios.isAxiosError(error) ? {
-        responseStatus: error.response?.status,
-        responseData: error.response?.data
-      } : undefined
+      code: 'server_error',
+      message: FALLBACK_ERROR_MESSAGE
     });
   }
 }
