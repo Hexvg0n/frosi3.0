@@ -51,7 +51,7 @@ const SkeletonLoader = () => (
 
 const QCPage = () => {
   const router = useRouter();
-  const { url } = router.query;
+  const { url: urlQuery } = router.query;
 
   const [link, setLink] = useState("");
   const [groups, setGroups] = useState([]);
@@ -85,7 +85,8 @@ const QCPage = () => {
       }, {
         headers: {
           'X-API-Key': process.env.NEXT_PUBLIC_API_SECRET
-        }
+        },
+        cancelToken: source.token
       });
 
       clearTimeout(timeout);
@@ -111,29 +112,25 @@ const QCPage = () => {
   }, []);
 
   useEffect(() => {
-    if (url && url !== link) {
-      setLink(decodeURIComponent(url));
-      handleConvertLink(decodeURIComponent(url));
+    if (urlQuery) {
+      const decodedUrl = decodeURIComponent(urlQuery);
+      setLink(decodedUrl);
+      handleConvertLink(decodedUrl);
     }
-  }, [url, handleConvertLink, link]);
+  }, [urlQuery, handleConvertLink]);
 
   const handleSearch = (e) => {
     e.preventDefault();
+    const encodedUrl = encodeURIComponent(link);
     router.push({
       pathname: '/qc',
-      query: { url: encodeURIComponent(link) },
-    });
-  };
-
-  const handlePagination = (direction) => {
-    setCurrentPage(prev => Math.max(1, Math.min(
-      direction === 'next' ? prev + 1 : prev - 1, 
-      totalPages
-    )));
+      query: { url: encodedUrl },
+    }, undefined, { shallow: true });
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href)
+    const fullUrl = `${window.location.origin}/qc?url=${encodeURIComponent(link)}`;
+    navigator.clipboard.writeText(fullUrl)
       .then(() => alert('Link skopiowany do schowka!'))
       .catch(() => alert('Błąd podczas kopiowania linku'));
   };
