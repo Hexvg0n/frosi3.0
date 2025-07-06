@@ -145,7 +145,7 @@ export default async function handler(req, res) {
 
   try {
     // Wywołanie zewnętrznego API
-    const apiUrl = `https://open.kakobuy.com/open/pic/qcImage?goodsUrl=${encodeURIComponent(url)}&token=aa38e63a04c292faba780abef3db2cee`;
+    const apiUrl = `https://open.kakobuy.com/open/pic/qcImage`;
     
     const response = await axios.get(apiUrl, {
       timeout: API_TIMEOUT,
