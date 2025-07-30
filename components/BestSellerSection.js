@@ -20,18 +20,19 @@ export default function BestSellersSection() {
 
   return (
     <div className="relative py-24 px-4">
-      <div className="fixed inset-0 -z-10 opacity-30">
+      <div className="absolute inset-0 -z-10 opacity-30">
         <div 
-          className="absolute w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,#4F46E5_0%,transparent_60%)]"
+          className="absolute w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.1)_0%,transparent_60%)]"
           style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
         />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto">
         <motion.h2 
-          className="text-3xl md:text-4xl font-bold text-center mb-16 bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          className="text-3xl md:text-4xl font-bold text-center mb-16 bg-gradient-to-r from-gray-400 to-white bg-clip-text text-transparent"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
         >
           Best Sellers
         </motion.h2>
@@ -40,10 +41,10 @@ export default function BestSellersSection() {
           {bestsellers.map((item, index) => (
             <motion.div
               key={item.id}
-              className="bg-gradient-to-br from-gray-900/40 to-gray-800/20 backdrop-blur-xl border border-white/10 rounded-3xl p-4 hover:border-purple-500/30 transition-all"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: index * 0.1 }}
+              className="bg-gradient-to-br from-gray-900/40 to-gray-800/20 backdrop-blur-xl border border-white/10 rounded-3xl p-4 hover:border-white/20 transition-all shadow-2xl shadow-black/30"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.8 }}
             >
               <img
                 src={item.image}
@@ -57,7 +58,7 @@ export default function BestSellersSection() {
                 <div className="grid grid-cols-2 gap-3">
                   <motion.button
                     onClick={() => handleQCClick(item.linkTo)}
-                    className="flex items-center justify-center gap-2 p-2 bg-purple-600/30 hover:bg-purple-500/50 rounded-xl"
+                    className="flex items-center justify-center gap-2 p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -69,7 +70,7 @@ export default function BestSellersSection() {
                     href={item.linkTo}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 p-2 bg-blue-600/30 hover:bg-blue-500/50 rounded-xl"
+                    className="flex items-center justify-center gap-2 p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >

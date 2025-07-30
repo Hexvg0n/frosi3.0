@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function NavbarSection() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isW2COpen, setIsW2COpen] = useState(false);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -10,10 +11,18 @@ export default function NavbarSection() {
 
   const navItems = [
     { name: "HOME", href: "/" },
-    { name: "W2C", href: "/w2c" },
+    { 
+      name: "W2C", 
+      href: "/w2c", 
+      dropdown: [
+        { name: "Items", href: "/w2c/items" },
+        { name: "Spreadsheet", href: "/w2c" },
+      ] 
+    },
     { name: "QC FINDER", href: "/qc" },
     { name: "CONVERTER", href: "/converter" },
     { name: "TRACKING", href: "/tracking" },
+    { name: "ADMIN", href: "/admin" },
   ];
 
   return (
@@ -112,6 +121,8 @@ export default function NavbarSection() {
               key={item.name}
               className="relative group"
               whileHover={{ scale: 1.05 }}
+              onHoverStart={() => item.dropdown && setIsW2COpen(true)}
+              onHoverEnd={() => item.dropdown && setIsW2COpen(false)}
             >
               <a
                 href={item.href}
@@ -120,6 +131,24 @@ export default function NavbarSection() {
                 {item.name}
                 <span className="absolute bottom-0 left-0 w-full h-[2px] bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
               </a>
+              {item.dropdown && isW2COpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full left-0 mt-2 w-48 bg-gray-800/80 backdrop-blur-md rounded-lg shadow-lg"
+                >
+                  {item.dropdown.map((dropdownItem) => (
+                    <a
+                      key={dropdownItem.name}
+                      href={dropdownItem.href}
+                      className="block px-4 py-2 text-white hover:bg-gray-700/80 rounded-lg"
+                    >
+                      {dropdownItem.name}
+                    </a>
+                  ))}
+                </motion.div>
+              )}
             </motion.div>
           ))}
           <div className="flex space-x-4 ml-4">

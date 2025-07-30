@@ -181,16 +181,15 @@ export default function MainSection() {
         <FallingStar key={star.id} star={star} />
       ))}
 
-      <motion.div
-        className="rounded-full py-3 px-10 bg-neutral-800 text-gray-300 text-lg shadow-inner-lg mt-40 mb-20 flex row"
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-      <img src="/images/kakobuy-icon.png" className="h-6 pr-2"></img>
-        Oficjalny partner
-      </motion.div>
-
+<motion.div
+  className="rounded-full py-3 px-10 text-gray-300 text-lg mt-40 mb-20 flex flex-row items-center bg-gradient-radial from-zinc-700 via-zinc-800 to-zinc-900 shadow-xl shadow-neutral-800"
+  initial={{ y: -20, opacity: 0 }}
+  animate={{ y: 0, opacity: 1 }}
+  transition={{ duration: 0.6 }}
+>
+  <img src="/images/kakobuy-icon.png" className="h-6 pr-2"></img>
+  Oficjalny partner
+</motion.div>
       <div className="flex-1 flex flex-col items-center justify-start max-w-5xl text-center px-4 my-16 space-y-12">
         <motion.h1
           className="text-4xl md:text-7xl font-semibold pb-8 leading-tight bg-gradient-to-r from-gray-400 to-white bg-clip-text text-transparent"
