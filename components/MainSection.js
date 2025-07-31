@@ -182,7 +182,7 @@ export default function MainSection() {
       ))}
 
 <motion.div
-  className="rounded-full py-3 px-10 text-gray-300 text-lg mt-40 mb-20 flex flex-row items-center bg-gradient-radial from-zinc-700 via-zinc-800 to-zinc-900 shadow-xl shadow-neutral-800"
+  className="rounded-full py-3 px-10 text-gray-300 text-lg mt-40 mb-20 flex flex-row items-center bg-gradient-radial from-zinc-700 via-zinc-800 to-zinc-900 shadow-xl "
   initial={{ y: -20, opacity: 0 }}
   animate={{ y: 0, opacity: 1 }}
   transition={{ duration: 0.6 }}
